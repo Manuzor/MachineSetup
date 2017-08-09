@@ -113,6 +113,7 @@ namespace MachineSetup
                 DownloadStartTime = DateTime.MinValue;
 
                 Console.WriteLine();
+                Console.WriteLine("Download finished!");
             }
         }
 
@@ -142,12 +143,17 @@ namespace MachineSetup
             DownloadLastReport = now;
         }
 
-        public Process RunProcess(ProcessStartInfo startInfo)
+        public void RunProcess(ProcessStartInfo startInfo, Action<Process> onFinish = null)
         {
-            Process proc = Process.Start(startInfo);
-            proc.WaitForExit();
+            Console.WriteLine("Running process...");
+            Console.WriteLine($"{Path.GetFileName(startInfo.FileName)}");
+            using(Process proc = Process.Start(startInfo))
+            {
+                proc.WaitForExit();
+                Console.WriteLine($"Process finished with exist code {proc.ExitCode}.");
 
-            return proc;
+                onFinish?.Invoke(proc);
+            }
         }
 
         private string _savePath;

@@ -100,7 +100,7 @@ namespace MachineSetup
         /// <param name="installerPath">The path of the installer package (*.msi). (not msiexec.exe)</param>
         public MsiInstaller(string installerPath) { InstallerPath = installerPath; }
 
-        public ProcessStartInfo GetProcessStartInfo()
+        public ProcessStartInfo CreateProcessStartInfo()
         {
             if(!File.Exists(InstallerPath))
             {

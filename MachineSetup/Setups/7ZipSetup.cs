@@ -26,14 +26,14 @@ namespace MachineSetup
                 },
             };
 
-            ProcessStartInfo startInfo = installer.GetProcessStartInfo();
-            using(Process proc = context.RunProcess(startInfo))
+            ProcessStartInfo startInfo = installer.CreateProcessStartInfo();
+            context.RunProcess(startInfo, (proc) =>
             {
                 if(installer.InterpretExitCode(proc) != MsiExitCode.Ok)
                 {
                     throw new Exception("Unable to run MSI installer");
                 }
-            }
+            });
         }
     }
 }
