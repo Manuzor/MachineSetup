@@ -10,6 +10,47 @@ using System.Threading.Tasks;
 
 namespace MachineSetup
 {
+    public static class ProcessHelper
+    {
+        public static string EscapeProcessArgument(string argument)
+        {
+            return argument.Replace("\"", "\"\"\"");
+        }
+
+        public static string ToProcessArgumentsString(params string[] args)
+        {
+            return ToProcessArgumentsString((IEnumerable<string>)args);
+        }
+
+        public static string ToProcessArgumentsString(IEnumerable<string> args)
+        {
+            StringBuilder result = new StringBuilder();
+            if(args.Any())
+            {
+                StringBuilder temp = new StringBuilder();
+                foreach(string arg in args)
+                {
+                    temp.Clear();
+                    temp.Append(arg);
+                    temp.Replace("\"", "\"\"\"");
+                    if(arg.Contains(' ') || arg.Contains('\t') || arg.Contains('\n') || arg.Contains('\r'))
+                    {
+                        temp.Insert(0, '"');
+                        temp.Append('"');
+                    }
+
+                    result.Append(temp);
+                    result.Append(' ');
+                }
+
+                // Remove trailing space that we inserted.
+                result.Length--;
+            }
+
+            return result.ToString();
+        }
+    }
+
     public class SetupContext
     {
         const int DOWNLOAD_PROGRESS_INDICATOR_SIZE = 40;
@@ -19,20 +60,33 @@ namespace MachineSetup
 
         public void DownloadFile(string friendlyName, string url, string destinationFile)
         {
-            FileInfo dest = new FileInfo(destinationFile);
-            if(!dest.Directory.Exists)
-            {
-                dest.Directory.Create();
-            }
+            Console.WriteLine($"Downloading {friendlyName}");
+            Console.WriteLine(url);
 
-            DownloadWrapper(friendlyName, (client) =>
+            FileInfo dest = new FileInfo(destinationFile);
+            if(dest.Exists)
             {
-                client.DownloadFileTaskAsync(new Uri(url), destinationFile).Wait();
-            });
+                Console.WriteLine("File already exists. Skipping download.");
+            }
+            else
+            {
+                if(!dest.Directory.Exists)
+                {
+                    dest.Directory.Create();
+                }
+
+                DownloadWrapper(friendlyName, (client) =>
+                {
+                    client.DownloadFileTaskAsync(new Uri(url), destinationFile).Wait();
+                });
+            }
         }
 
         public string DownloadString(string friendlyName, string url)
         {
+            Console.WriteLine($"Downloading {friendlyName}");
+            Console.WriteLine(url);
+
             string result = null;
             DownloadWrapper(friendlyName, (client) =>
             {
@@ -51,7 +105,6 @@ namespace MachineSetup
                 client.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2;)");
                 client.DownloadProgressChanged += (o, e) => HandeDownloadProgress(friendlyName, e.BytesReceived, e.TotalBytesToReceive);
 
-                Console.WriteLine($"Downloading {friendlyName}");
                 DownloadStartTime = DateTime.Now;
                 DownloadLastReceivedBytes = 0;
 
@@ -89,6 +142,14 @@ namespace MachineSetup
             DownloadLastReport = now;
         }
 
+        public Process RunProcess(ProcessStartInfo startInfo)
+        {
+            Process proc = Process.Start(startInfo);
+            proc.WaitForExit();
+
+            return proc;
+        }
+
         private string _savePath;
         public string SavePath
         {
@@ -123,6 +184,9 @@ namespace MachineSetup
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             Console.WriteLine($"Running {Metadata.Name} v{Metadata.Version}");
             SetupContext context = new SetupContext();
+
+            SevenZipSetup sevenZip = new SevenZipSetup();
+            sevenZip.Run(context);
 
             GitSetup git = new GitSetup();
             git.Run(context);

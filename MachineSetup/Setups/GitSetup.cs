@@ -18,15 +18,13 @@ namespace MachineSetup
 
         public void Run(SetupContext context)
         {
-            // TODO: Download via context in GetLatestRelease?
-            GitHubRelease latestRelease = GitHubApi.GetLatestRelease(context, GitHubApi.DefaultApiUrl, GitHubOwner, GitHubRepo);
+            GitHubRelease latestRelease = GitHubApi.GetLatestReleaseOnGitHub(context, GitHubApi.DefaultApiUrl, GitHubOwner, GitHubRepo);
             GitHubReleaseAsset asset = latestRelease.Assets.Where(r => Regex.IsMatch(r.BrowserDownloadUrl, LatestPortablePattern)).FirstOrDefault();
 
             string gitInstallerPath = Path.Combine(context.SavePath, Path.GetFileName(asset.BrowserDownloadUrl));
             context.DownloadFile("git installer", asset.BrowserDownloadUrl, gitInstallerPath);
 
             // TODO: Execute
-
         }
     }
 }

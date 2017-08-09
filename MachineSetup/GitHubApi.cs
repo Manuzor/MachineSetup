@@ -101,7 +101,7 @@ namespace MachineSetup
     {
         public const string DefaultApiUrl = "https://api.github.com";
 
-        public static GitHubRelease GetLatestRelease(SetupContext context, string apiUrl, string owner, string repo)
+        public static GitHubRelease GetLatestReleaseOnGitHub(SetupContext context, string apiUrl, string owner, string repo)
         {
             string url = $"{apiUrl}/repos/{owner}/{repo}/releases/latest";
             string jsonSource = context.DownloadString("list of latest git releases", url);
