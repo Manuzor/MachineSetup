@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using static Global;
 
 
 namespace MachineSetup
@@ -15,25 +13,25 @@ namespace MachineSetup
         {
             const string url = @"http://7-zip.org/a/7z1604-x64.msi";
             string name = Path.GetFileName(url);
-            string savePath = Path.Combine(context.SavePath, name);
+            string savePath = Path.Combine(context.SavePath, "7z", name);
             context.DownloadFile("7-Zip installer", url, savePath);
 
-            MsiInstaller installer = new MsiInstaller(savePath)
+            ProcessStartInfo startInfo = PrepareMsiProcess(new MsiInfo
             {
-                MsiArguments = new MsiArguments
-                {
-                    Passive = true,
-                },
-            };
-
-            ProcessStartInfo startInfo = installer.CreateProcessStartInfo();
-            context.RunProcess(startInfo, (proc) =>
-            {
-                if(installer.InterpretExitCode(proc) != MsiExitCode.Ok)
-                {
-                    throw new Exception("Unable to run MSI installer");
-                }
+                InstallerPath = savePath,
+                Passive = true,
             });
+
+            if(context.InstallEnabled)
+            {
+                context.RunProcess(startInfo, (proc) =>
+                {
+                    if(InterpretMsiExitCode(proc) != MsiExitCode.Ok)
+                    {
+                        throw new Exception("Unable to run MSI installer");
+                    }
+                });
+            }
         }
     }
 }

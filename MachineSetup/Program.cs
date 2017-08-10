@@ -5,54 +5,60 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+
+using static Global;
+
+public static partial class Global
+{
+    public static string EscapeProcessArgument(string argument)
+    {
+        return argument.Replace("\"", "\"\"\"");
+    }
+
+    public static string ToProcessArgumentsString(params string[] args)
+    {
+        return ToProcessArgumentsString((IEnumerable<string>)args);
+    }
+
+    public static string ToProcessArgumentsString(IEnumerable<string> args)
+    {
+        StringBuilder result = new StringBuilder();
+        if(args.Any())
+        {
+            StringBuilder temp = new StringBuilder();
+            foreach(string arg in args)
+            {
+                temp.Clear();
+                temp.Append(arg);
+                temp.Replace("\"", "\"\"\"");
+                if(arg.Contains(' ') || arg.Contains('\t') || arg.Contains('\n') || arg.Contains('\r'))
+                {
+                    temp.Insert(0, '"');
+                    temp.Append('"');
+                }
+
+                result.Append(temp);
+                result.Append(' ');
+            }
+
+            // Remove trailing space that we inserted.
+            result.Length--;
+        }
+
+        return result.ToString();
+    }
+}
 
 namespace MachineSetup
 {
-    public static class ProcessHelper
-    {
-        public static string EscapeProcessArgument(string argument)
-        {
-            return argument.Replace("\"", "\"\"\"");
-        }
-
-        public static string ToProcessArgumentsString(params string[] args)
-        {
-            return ToProcessArgumentsString((IEnumerable<string>)args);
-        }
-
-        public static string ToProcessArgumentsString(IEnumerable<string> args)
-        {
-            StringBuilder result = new StringBuilder();
-            if(args.Any())
-            {
-                StringBuilder temp = new StringBuilder();
-                foreach(string arg in args)
-                {
-                    temp.Clear();
-                    temp.Append(arg);
-                    temp.Replace("\"", "\"\"\"");
-                    if(arg.Contains(' ') || arg.Contains('\t') || arg.Contains('\n') || arg.Contains('\r'))
-                    {
-                        temp.Insert(0, '"');
-                        temp.Append('"');
-                    }
-
-                    result.Append(temp);
-                    result.Append(' ');
-                }
-
-                // Remove trailing space that we inserted.
-                result.Length--;
-            }
-
-            return result.ToString();
-        }
-    }
-
     public class SetupContext
     {
+        public List<string> UserPath = new List<string>();
+        public List<string> MachinePath = new List<string>();
+
+        public bool InstallEnabled { get; set; } = true;
+
         const int DOWNLOAD_PROGRESS_INDICATOR_SIZE = 40;
         DateTime DownloadStartTime;
         DateTime DownloadLastReport;
@@ -150,7 +156,7 @@ namespace MachineSetup
             using(Process proc = Process.Start(startInfo))
             {
                 proc.WaitForExit();
-                Console.WriteLine($"Process finished with exist code {proc.ExitCode}.");
+                Console.WriteLine($"Process finished with exit code {proc.ExitCode}.");
 
                 onFinish?.Invoke(proc);
             }
@@ -188,14 +194,24 @@ namespace MachineSetup
 #endif
 
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-            Console.WriteLine($"Running {Metadata.Name} v{Metadata.Version}");
-            SetupContext context = new SetupContext();
+            Console.WriteLine($"Running {GlobalName} v{GlobalVersion}");
+
+            SetupContext context = new SetupContext()
+            {
+                UserPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User).Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+                MachinePath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine).Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+
+                // For now.
+                //InstallEnabled = false,
+            };
 
             SevenZipSetup sevenZip = new SevenZipSetup();
             sevenZip.Run(context);
 
             GitSetup git = new GitSetup();
             git.Run(context);
+
+            //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
         }
     }
 }

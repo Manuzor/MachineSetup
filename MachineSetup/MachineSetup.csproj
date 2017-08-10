@@ -51,9 +51,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GitHubApi.cs" />
+    <Compile Include="APIs\7ZipApi.cs" />
+    <Compile Include="APIs\GitHubApi.cs" />
     <Compile Include="Metadata.cs" />
-    <Compile Include="MsiApi.cs" />
+    <Compile Include="APIs\MsiApi.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Setups\7ZipSetup.cs" />
