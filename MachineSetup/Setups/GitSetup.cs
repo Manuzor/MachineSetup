@@ -33,25 +33,14 @@ namespace MachineSetup
                 if(context.InstallEnabled)
                 {
                     string installerLogPath = Path.Combine(gitWorkingDir, "installer.log");
-                    ProcessStartInfo processStartInfo = new ProcessStartInfo(gitInstallerPath)
-                    {
-                        // TODO: Extract common API?
-                        // NOTE: Install destination is default C:\Program Files
-                        Arguments = ToProcessArgumentsString(
-                            "/SP-", // Disables the initial prompt
-                            "/SILENT", // Only show progress
-                            "/SUPPRESSMSGBOXES", // Suppress most message boxes
-                            "/NORESTART", // Prevent system restart
-                            $"/LOG={installerLogPath}",
-                            "/CLOSEAPPLICATIONS", // Close all applications that lock required files
-                            "/TASKS=!desktopicon" // Prevent desktop icon to be created
-                        ),
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                    };
+
+                    InnoSetupInfo setupInfo = InnoSetupInfo.Default;
+                    setupInfo.LogPath = installerLogPath;
+                    ProcessStartInfo processStartInfo = PrepareInnoSetupProcess(gitInstallerPath, setupInfo);
                     context.RunProcess(processStartInfo);
                 }
+
+                // Write .gitconfig
             }
         }
     }

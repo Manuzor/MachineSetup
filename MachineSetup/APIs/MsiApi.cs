@@ -25,8 +25,6 @@ public static partial class Global
 
     public struct MsiInfo
     {
-        public string InstallerPath;
-
         // /quiet
         // Quiet mode, no user interaction
         public bool Quiet;
@@ -37,10 +35,20 @@ public static partial class Global
 
         public MsiUILevel UILevel;
 
-        public IEnumerable<string> BuildCommandLine()
+        public string LogPath;
+
+        public List<string> AdditionalArguments;
+
+        public static readonly MsiInfo Default = new MsiInfo
+        {
+            Passive = true,
+            AdditionalArguments = new List<string>(),
+        };
+
+        public IEnumerable<string> BuildCommandLine(string installerPath)
         {
             yield return "/i";
-            yield return this.InstallerPath;
+            yield return installerPath;
 
             if(this.Quiet) yield return "/quiet";
             if(this.Passive) yield return "/passive";
@@ -56,24 +64,32 @@ public static partial class Global
                     default: throw new ArgumentException(nameof(this.UILevel));
                 }
             }
+
+            if(this.LogPath != null)
+            {
+                yield return $"/L*";
+                yield return this.LogPath;
+            }
+
+            if(this.AdditionalArguments != null)
+            {
+                foreach(string arg in this.AdditionalArguments)
+                    yield return arg;
+            }
         }
     }
 
-    public static ProcessStartInfo PrepareMsiProcess(MsiInfo info) => PrepareProcess(MsiExePath, info);
-
-    public static ProcessStartInfo PrepareProcess(string msiPath, MsiInfo info)
+    public static ProcessStartInfo PrepareMsiProcess(string msiPath, string installerPath, MsiInfo info)
     {
-        if(!File.Exists(info.InstallerPath))
+        if(!File.Exists(installerPath))
         {
-            throw new System.IO.FileNotFoundException("Installer can't be found", info.InstallerPath);
+            throw new System.IO.FileNotFoundException("Installer can't be found", installerPath);
         }
-
-        // TODO Better argument escaping.
 
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
             FileName = msiPath,
-            Arguments = ToProcessArgumentsString(info.BuildCommandLine()),
+            Arguments = ToProcessArgumentsString(info.BuildCommandLine(installerPath)),
             UseShellExecute = false,
             RedirectStandardError = true,
             RedirectStandardOutput = true,

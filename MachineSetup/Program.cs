@@ -4,9 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Security.Principal;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+using System.Windows.Forms;
 using static Global;
 
 public static partial class Global
@@ -48,10 +51,41 @@ public static partial class Global
 
         return result.ToString();
     }
+
+    public static bool IsElevatedProcess
+    {
+        get
+        {
+            using(WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+    }
 }
 
 namespace MachineSetup
 {
+    public enum SetupStage
+    {
+        Initial,
+        GatherData,
+
+        Install,
+        Finalizing,
+    }
+
+    public struct SetupDependency
+    {
+    }
+
+    public struct SetupStageInfo
+    {
+        public string Name;
+        public Type Type;
+        public object Value;
+    }
+
     public class SetupContext
     {
         public List<string> UserPath = new List<string>();
@@ -155,6 +189,8 @@ namespace MachineSetup
             Console.WriteLine($"{Path.GetFileName(startInfo.FileName)}");
             using(Process proc = Process.Start(startInfo))
             {
+                if(startInfo.RedirectStandardOutput) proc.BeginOutputReadLine();
+                if(startInfo.RedirectStandardError) proc.BeginErrorReadLine();
                 proc.WaitForExit();
                 Console.WriteLine($"Process finished with exit code {proc.ExitCode}.");
 
@@ -182,34 +218,75 @@ namespace MachineSetup
     {
         static void Main(string[] args)
         {
-#if false
-            using(WebClient web = new WebClient())
+            if(!Debugger.IsAttached && !IsElevatedProcess)
             {
-                web.DownloadProgressChanged += Web_DownloadProgressChanged;
-                const string url = @"https://www.python.org/ftp/python/3.6.2/python-3.6.2-amd64-webinstall.exe";
-                Task.WaitAll(web.DownloadFileTaskAsync(new Uri(url), "python-3.6.2-amd64-webinstall.exe"));
-                Console.WriteLine();
-                Console.WriteLine("Done");
+                string message = "You did not start this process with administrative privileges. " +
+                    "All setups will ask for administrative privileges individually and you have to click Yes/No every time." +
+                    "Do you really want this?";
+
+                Form form = new Form();
+                DialogResult dialog =
+                    MessageBox.Show(message,
+                                    "No Administrative Privileges",
+                                    MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Exclamation);
+                if(dialog == DialogResult.No)
+                {
+                    Environment.Exit(1);
+                }
             }
-#endif
 
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             Console.WriteLine($"Running {GlobalName} v{GlobalVersion}");
 
             SetupContext context = new SetupContext()
             {
                 UserPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User).Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
                 MachinePath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine).Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
-
-                // For now.
-                //InstallEnabled = false,
             };
 
+#if DEBUG
+            if(Debugger.IsAttached)
+                context.InstallEnabled = false;
+#endif
+
+            Console.WriteLine($"Save path: {context.SavePath}");
+
+#if false
+            VisualStudioSetup vs = new VisualStudioSetup();
+            vs.Run(context);
+#endif
+
+#if false
             SevenZipSetup sevenZip = new SevenZipSetup();
             sevenZip.Run(context);
+#endif
 
+#if true
             GitSetup git = new GitSetup();
             git.Run(context);
+#endif
+
+#if false
+            SublimeText3Setup subl = new SublimeText3Setup();
+            subl.Run(context);
+#endif
+
+#if false
+            FirefoxSetup firefox = new FirefoxSetup();
+            firefox.Run(context);
+#endif
+
+#if false
+            BeyondCompareSetup bcomp = new BeyondCompareSetup();
+            bcomp.Run(context);
+#endif
+
+#if true
+            PythonSetup py = new PythonSetup();
+            py.Run(context);
+#endif
 
             //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
         }

@@ -16,11 +16,7 @@ namespace MachineSetup
             string savePath = Path.Combine(context.SavePath, "7z", name);
             context.DownloadFile("7-Zip installer", url, savePath);
 
-            ProcessStartInfo startInfo = PrepareMsiProcess(new MsiInfo
-            {
-                InstallerPath = savePath,
-                Passive = true,
-            });
+            ProcessStartInfo startInfo = PrepareMsiProcess(MsiExePath, savePath, MsiInfo.Default);
 
             if(context.InstallEnabled)
             {
