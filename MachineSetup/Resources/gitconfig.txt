@@ -1,0 +1,43 @@
+[user]
+	name = Manuel Maier
+	email = mjmaier@gmx.de
+[alias]
+	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit
+	lga = log --color --graph --pretty=format:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit --full-history --all
+	s = status
+	whoami = config --get-regexp user.*
+	unstage = reset
+	ls-stage = diff --name-only
+	up = "!git remote update -p; git merge --ff-only @{u}"
+[core]
+	autocrlf = false
+	preloadindex = true
+	fscache = true
+	fileMode = false
+	editor = subl -w -s
+[push]
+	default = simple
+	ff = true
+[pull]
+	ff = only
+[credential]
+	helper = wincred
+[diff]
+	tool = beyondcompare4
+	guitool = beyondcompare4
+[difftool]
+	prompt = false
+[difftool "beyondcompare4"]
+	path = C:/Users/mjmai/Dropbox/Programs/BeyondCompare4/BComp.exe
+	cmd = \"C:/Users/mjmai/Dropbox/Programs/BeyondCompare4/BComp.exe\" \"$LOCAL\" \"$REMOTE\"
+[merge]
+	tool = BeyondCompare4
+[mergetool]
+	keepTemporaries = false
+	prompt = false
+	keepBackup = false
+[mergetool "BeyondCompare4"]
+	path = C:/Users/mjmai/Dropbox/Programs/BeyondCompare4/BComp.exe
+	cmd = \"C:/Users/mjmai/Dropbox/Programs/BeyondCompare4/BComp.exe\" \"$LOCAL\" \"$REMOTE\" \"$BASE\" \"$MERGED\"
+[i18n]
+	filesEncoding = utf-8

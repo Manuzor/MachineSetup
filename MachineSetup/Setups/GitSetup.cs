@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 using static Global;
@@ -12,6 +14,11 @@ namespace MachineSetup
     {
         public string GitHubOwner = "git-for-windows";
         public string GitHubRepo = "git";
+
+        public string DefaultGitConfig = @"
+
+
+";
 
         public string InstallerPattern = @"^Git-.*-64-bit\.exe$";
 
@@ -41,6 +48,9 @@ namespace MachineSetup
                 }
 
                 // Write .gitconfig
+                string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string gitconfigPath = Path.Combine(home, ".gitconfig");
+                File.WriteAllText(gitconfigPath, Resources.gitconfig, Encoding.UTF8);
             }
         }
     }

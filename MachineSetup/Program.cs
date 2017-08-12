@@ -283,7 +283,7 @@ namespace MachineSetup
             bcomp.Run(context);
 #endif
 
-#if true
+#if false
             PythonSetup py = new PythonSetup();
             py.Run(context);
 #endif
