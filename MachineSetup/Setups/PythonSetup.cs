@@ -125,7 +125,7 @@ namespace MachineSetup
             string downloadUrl = $"{VersionFtpPageUrl}{version}/python-{version}-amd64-webinstall.exe";
 
             // Construct the installer path
-            string installerPath = Path.Combine(installerDir, Path.GetFileName(downloadUrl));
+            string installerPath = Path.Combine(installerDir, GetFileNameFromUrl(downloadUrl));
 
             // Download the installer
             context.DownloadFile("Python webinstaller", downloadUrl, installerPath);

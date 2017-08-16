@@ -33,22 +33,35 @@ public static partial class Global
                 nameof(destination));
         }
 
-        List<string> args = new List<string>
+        Console.WriteLine($"Cloning git repository: \"{url}\"");
+        Console.WriteLine($"Repository destination: \"{destination}\"");
+        if(Directory.Exists(Path.Combine(destination, ".git")))
         {
-            "clone", url, destination
-        };
-
-        if(depth > 0)
-            args.Add($"--depth={depth}");
-
-        if(recursive)
-            args.Add("--recursive");
-
-        ProcessStartInfo processStartInfo = new ProcessStartInfo(gitExePath)
+            Console.Error.WriteLine("Repo already exists. Not cloning it again.");
+        }
+        else
         {
-            Arguments = ToProcessArgumentsString(args),
-        };
+            List<string> args = new List<string>
+            {
+                "clone", url, destination
+            };
 
-        context.RunProcess(processStartInfo);
+            if(depth > 0)
+                args.Add($"--depth={depth}");
+
+            if(recursive)
+                args.Add("--recursive");
+
+            ProcessStartInfo processStartInfo = new ProcessStartInfo(gitExePath)
+            {
+                Arguments = ToProcessArgumentsString(args),
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+
+            context.RunProcess(processStartInfo);
+        }
     }
 }

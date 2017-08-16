@@ -26,7 +26,7 @@ namespace MachineSetup
         {
             GitHubRelease latestRelease = GitHubApi.GetLatestReleaseOnGitHub(context, GitHubApi.DefaultApiUrl, GitHubOwner, GitHubRepo);
             IEnumerable<GitHubReleaseAsset> matches =
-                latestRelease.Assets.Where(a => Regex.IsMatch(Path.GetFileName(a.BrowserDownloadUrl),
+                latestRelease.Assets.Where(a => Regex.IsMatch(GetFileNameFromUrl(a.BrowserDownloadUrl),
                                                               InstallerPattern));
 
             GitHubReleaseAsset asset = matches.FirstOrDefault();
@@ -34,7 +34,7 @@ namespace MachineSetup
             if(asset != null)
             {
                 string gitWorkingDir = Path.Combine(context.SavePath, "git");
-                string gitInstallerPath = Path.Combine(gitWorkingDir, Path.GetFileName(asset.BrowserDownloadUrl));
+                string gitInstallerPath = Path.Combine(gitWorkingDir, GetFileNameFromUrl(asset.BrowserDownloadUrl));
                 context.DownloadFile("git installer", asset.BrowserDownloadUrl, gitInstallerPath);
 
                 if(context.InstallEnabled)

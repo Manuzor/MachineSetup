@@ -62,6 +62,16 @@ public static partial class Global
             }
         }
     }
+
+    public static string GetFileNameFromUrl(string url, bool withExtension = true)
+    {
+        string encodedFileName;
+        if(withExtension) encodedFileName = Path.GetFileName(url);
+        else encodedFileName = Path.GetFileNameWithoutExtension(url);
+
+        string result = WebUtility.UrlDecode(encodedFileName);
+        return result;
+    }
 }
 
 namespace MachineSetup
@@ -186,13 +196,24 @@ namespace MachineSetup
         public void RunProcess(ProcessStartInfo startInfo, Action<Process> onFinish = null)
         {
             Console.WriteLine("Running process...");
-            Console.WriteLine($"{Path.GetFileName(startInfo.FileName)}");
-            using(Process proc = Process.Start(startInfo))
+            Console.WriteLine($"\"{Path.GetFileName(startInfo.FileName)}\"");
+
+            // Run with administrative privileges.
+            startInfo.Verb = "runas";
+
+            using(Process proc = new Process { StartInfo = startInfo })
             {
+                proc.OutputDataReceived += (o, e) => Console.Out.WriteLine(e.Data);
+                proc.ErrorDataReceived += (o, e) => Console.Error.WriteLine(e.Data);
+
+                proc.Start();
                 if(startInfo.RedirectStandardOutput) proc.BeginOutputReadLine();
                 if(startInfo.RedirectStandardError) proc.BeginErrorReadLine();
+
                 proc.WaitForExit();
-                Console.WriteLine($"Process finished with exit code {proc.ExitCode}.");
+
+                if(proc.ExitCode != 0)
+                    Console.Error.WriteLine($"Process finished with exit code {proc.ExitCode}.");
 
                 onFinish?.Invoke(proc);
             }
@@ -263,13 +284,21 @@ namespace MachineSetup
             sevenZip.Run(context);
 #endif
 
-#if true
+#if false
             GitSetup git = new GitSetup();
             git.Run(context);
 #endif
 
-#if false
-            SublimeText3Setup subl = new SublimeText3Setup();
+#if true
+            SublimeText3Setup subl = new SublimeText3Setup
+            {
+                GitPackagesToInstallAfterwards = new List<string>
+                {
+                    @"https://github.com/Manuzor/SublimeText3Settings.git",
+                    @"https://github.com/Manuzor/Emvee.git",
+                },
+            };
+
             subl.Run(context);
 #endif
 

@@ -12,7 +12,7 @@ namespace MachineSetup
         public void Run(SetupContext context)
         {
             const string url = @"http://7-zip.org/a/7z1604-x64.msi";
-            string name = Path.GetFileName(url);
+            string name = GetFileNameFromUrl(url);
             string savePath = Path.Combine(context.SavePath, "7z", name);
             context.DownloadFile("7-Zip installer", url, savePath);
 

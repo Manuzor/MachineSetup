@@ -59,6 +59,7 @@
     <Compile Include="APIs\GitApi.cs" />
     <Compile Include="APIs\GitHubApi.cs" />
     <Compile Include="APIs\InnoSetupApi.cs" />
+    <Compile Include="APIs\PowershellApi.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="APIs\MsiApi.cs" />
     <Compile Include="Program.cs" />

@@ -30,7 +30,7 @@ namespace MachineSetup
 
             // Determine the installer path
             string installerDir = Path.Combine(context.SavePath, "beyondcompare4");
-            string installerPath = Path.Combine(installerDir, Path.GetFileName(downloadUrl));
+            string installerPath = Path.Combine(installerDir, GetFileNameFromUrl(downloadUrl));
 
             // Download the file
             context.DownloadFile("Beyond Compare 4 installer", downloadUrl, installerPath);
