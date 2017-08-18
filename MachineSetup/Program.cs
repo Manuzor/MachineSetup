@@ -279,7 +279,7 @@ namespace MachineSetup
             vs.Run(context);
 #endif
 
-#if false
+#if true
             SevenZipSetup sevenZip = new SevenZipSetup();
             sevenZip.Run(context);
 #endif
@@ -289,7 +289,7 @@ namespace MachineSetup
             git.Run(context);
 #endif
 
-#if true
+#if false
             SublimeText3Setup subl = new SublimeText3Setup
             {
                 GitPackagesToInstallAfterwards = new List<string>
