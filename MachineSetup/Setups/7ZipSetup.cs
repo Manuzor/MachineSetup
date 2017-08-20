@@ -8,13 +8,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static Global;
 
-public static partial class Global
+namespace MachineSetup
 {
-    public struct SevenZipVersion : IComparable<SevenZipVersion>
+    public partial struct SevenZipVersion
     {
-        public int Major;
-        public int Minor;
-        public bool IsBeta;
+        public bool IsBeta => Flags.HasFlag(VersionFlags.Beta);
 
         public override string ToString()
         {
@@ -52,23 +50,12 @@ public static partial class Global
                     {
                         Major = int.Parse(match.Groups["major"].Value),
                         Minor = int.Parse(match.Groups["minor"].Value),
-                        IsBeta = match.Groups["beta"].Success,
+                        Flags = match.Groups["beta"].Success ? VersionFlags.Beta : 0,
                     };
                 }
             }
 
             return result;
-        }
-
-        public int CompareTo(SevenZipVersion other)
-        {
-            if(this.Major < other.Major) return -1;
-            if(this.Major > other.Major) return 1;
-            if(this.Minor < other.Minor) return -1;
-            if(this.Minor > other.Minor) return 1;
-            if(this.IsBeta && !other.IsBeta) return -1;
-            if(!this.IsBeta && other.IsBeta) return 1;
-            return 0;
         }
     }
 }

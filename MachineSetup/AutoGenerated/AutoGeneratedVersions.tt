@@ -1,0 +1,187 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+using System;
+using System.Text;
+using System.Text.RegularExpressions;
+
+[Flags]
+public enum VersionFlags
+{
+    Beta,
+    RC1,
+    RC2,
+    RC3,
+    Pre,
+}
+<#
+    Info[] infos = new[]
+    {
+        new Info { Namespace = "MachineSetup", Name = "NextCloud", Fields = DefaultFields4, },
+        new Info { Namespace = "MachineSetup", Name = "Gimp", Fields = DefaultFields3, },
+        new Info
+        {
+            Namespace = "MachineSetup",
+            Name = "SevenZip",
+            Fields = DefaultFields2,
+
+            Generate_Flags = true,
+            Generate_ToString = false,
+            Generate_TryParse = false,
+        },
+    };
+
+    foreach(Info info in infos)
+    {
+        if(!string.IsNullOrWhiteSpace(info.Namespace))
+        {
+            WriteLine("");
+            WriteLine($"{Indent(0)}namespace {info.Namespace}");
+            WriteLine($"{Indent(0)}{{");
+            IndentBaseLevel++;
+        }
+
+        WriteLine($"{Indent(0)}public partial struct {info.TypeName} : IComparable<{info.TypeName}>");
+        WriteLine($"{Indent(0)}{{");
+        {
+            if(info.Generate_VersionRegex)
+            {
+                WriteLine($"{Indent(1)}public const string VersionRegex = @\"{info.StringPrefix}(?<{string.Join(@">\d+)\.(?<", info.Fields.Select(f => f.Name))}>\\d+)\";");
+                WriteLine("");
+            }
+
+            foreach(Field field in info.Fields)
+            {
+                WriteLine($"{Indent(1)}public {field.Type} {field.Name};");
+            }
+
+            if(info.Generate_Flags)
+                WriteLine($"{Indent(1)}public VersionFlags Flags;");
+
+            // ToString()
+            if(info.Generate_ToString)
+            {
+                WriteLine("");
+                WriteLine($"{Indent(1)}public override string ToString()");
+                WriteLine($"{Indent(1)}{{");
+                WriteLine($"{Indent(2)}StringBuilder result = new StringBuilder($\"{info.StringPrefix}{{{string.Join("}.{", info.Fields.Select(f => f.Name))}}}\");");
+                if(info.Generate_Flags)
+                {
+                    // TODO
+                }
+                WriteLine($"{Indent(2)}return result.ToString();");
+                WriteLine($"{Indent(1)}}}");
+            }
+
+            // CompareTo()
+            {
+                WriteLine("");
+                WriteLine($"{Indent(1)}public int CompareTo({info.TypeName} other)");
+                WriteLine($"{Indent(1)}{{");
+                foreach(Field field in info.Fields)
+                {
+                    WriteLine($"{Indent(2)}if({field.Name} < other.{field.Name}) return -1;");
+                    WriteLine($"{Indent(2)}if({field.Name} > other.{field.Name}) return 1;");
+                }
+
+                if(info.Generate_Flags)
+                {
+                    WriteLine($"{Indent(2)}if(Flags != 0 && other.Flags == 0) return -1;");
+                    WriteLine($"{Indent(2)}if(Flags == 0 && other.Flags != 0) return 1;");
+                }
+
+                WriteLine($"{Indent(2)}return 0;");
+                WriteLine($"{Indent(1)}}}");
+            }
+
+            // TryParse()
+            if(info.Generate_TryParse)
+            {
+                WriteLine("");
+                WriteLine($"{Indent(1)}public static {info.TypeName}? TryParse(string str)");
+                WriteLine($"{Indent(1)}{{");
+                WriteLine($"{Indent(2)}{info.TypeName}? result = null;");
+                WriteLine($"{Indent(2)}if(!string.IsNullOrWhiteSpace(str))");
+                WriteLine($"{Indent(2)}{{");
+                WriteLine($"{Indent(3)}Match match = Regex.Match(str, VersionRegex);");
+                WriteLine($"{Indent(3)}if(match.Success)");
+                WriteLine($"{Indent(3)}{{");
+                WriteLine($"{Indent(4)}result = new {info.TypeName}");
+                WriteLine($"{Indent(4)}{{");
+                foreach(Field field in info.Fields)
+                {
+                    WriteLine($"{Indent(5)}{field.Name} = {field.Type}.Parse(match.Groups[\"{field.Name}\"].Value),");
+                }
+                WriteLine($"{Indent(4)}}};");
+                WriteLine($"{Indent(3)}}}");
+                WriteLine($"{Indent(2)}}}");
+                WriteLine("");
+                WriteLine($"{Indent(2)}return result;");
+
+                WriteLine($"{Indent(1)}}}");
+            }
+        }
+        WriteLine($"{Indent(0)}}}"); // struct
+
+        if(!string.IsNullOrWhiteSpace(info.Namespace))
+        {
+            IndentBaseLevel--;
+            WriteLine($"{Indent(0)}}}"); // namespace
+        }
+    }
+#>
+
+<#+
+class Info
+{
+    public string Namespace;
+
+    public string Name;
+    public string TypeName => $"{Name}Version";
+
+    public Field[] Fields;
+
+    public string StringPrefix = string.Empty;
+
+	public bool Generate_VersionRegex = true;
+    public bool Generate_Flags = false;
+    public bool Generate_ToString = true;
+    public bool Generate_TryParse = true;
+}
+
+struct Field
+{
+    public string Type;
+    public string Name;
+
+    public Field(string type, string name) { this.Type = type; this.Name = name; }
+}
+
+int IndentBaseLevel = 0;
+int IndentMultiplier = 4;
+string Indent(int level) => new string(' ', IndentMultiplier * (IndentBaseLevel + level));
+
+static readonly Field[] DefaultFields4 = new []
+{
+    new Field("int", "Major"),
+    new Field("int", "Minor"),
+    new Field("int", "Revision"),
+    new Field("int", "Build"),
+};
+
+static readonly Field[] DefaultFields3 = new[]
+{
+    new Field("int", "Major"),
+    new Field("int", "Minor"),
+    new Field("int", "Revision"),
+};
+
+static readonly Field[] DefaultFields2 = new[]
+{
+    new Field("int", "Major"),
+    new Field("int", "Minor"),
+};
+#>

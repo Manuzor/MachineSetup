@@ -317,9 +317,14 @@ namespace MachineSetup
             py.Run(context);
 #endif
 
-#if true
+#if false
             NextCloudSetup nextcloud = new NextCloudSetup();
             nextcloud.Run(context);
+#endif
+
+#if true
+            GimpSetup gimp = new GimpSetup();
+            gimp.Run(context);
 #endif
 
             //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
