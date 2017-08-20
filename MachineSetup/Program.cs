@@ -279,7 +279,7 @@ namespace MachineSetup
             vs.Run(context);
 #endif
 
-#if true
+#if false
             SevenZipSetup sevenZip = new SevenZipSetup();
             sevenZip.Run(context);
 #endif
@@ -315,6 +315,11 @@ namespace MachineSetup
 #if false
             PythonSetup py = new PythonSetup();
             py.Run(context);
+#endif
+
+#if true
+            NextCloudSetup nextcloud = new NextCloudSetup();
+            nextcloud.Run(context);
 #endif
 
             //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
