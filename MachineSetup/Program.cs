@@ -76,59 +76,44 @@ public static partial class Global
 
 namespace MachineSetup
 {
-    public enum SetupStage
-    {
-        Initial,
-        GatherData,
-
-        Install,
-        Finalizing,
-    }
-
-    public struct SetupDependency
-    {
-    }
-
-    public struct SetupStageInfo
-    {
-        public string Name;
-        public Type Type;
-        public object Value;
-    }
-
     public class SetupContext
     {
         public List<string> UserPath = new List<string>();
         public List<string> MachinePath = new List<string>();
 
-        public bool InstallEnabled { get; set; } = true;
+        public bool InstallEnabled = true;
+
+        internal List<string> PendingTempFilePaths = new List<string>();
 
         const int DOWNLOAD_PROGRESS_INDICATOR_SIZE = 40;
         DateTime DownloadStartTime;
         DateTime DownloadLastReport;
         long DownloadLastReceivedBytes;
 
+        internal WebClient CurrentClient;
+
         public void DownloadFile(string friendlyName, string url, string destinationFile)
         {
             Console.WriteLine($"Downloading {friendlyName}");
             Console.WriteLine(url);
 
-            FileInfo dest = new FileInfo(destinationFile);
-            if(dest.Exists)
+            if(File.Exists(destinationFile))
             {
                 Console.WriteLine("File already exists. Skipping download.");
             }
             else
             {
-                if(!dest.Directory.Exists)
-                {
-                    dest.Directory.Create();
-                }
+                Directory.CreateDirectory(Path.GetDirectoryName(destinationFile));
 
+                string tempFile = $"{destinationFile}.part";
+                PendingTempFilePaths.Add(tempFile);
                 DownloadWrapper(friendlyName, (client) =>
                 {
-                    client.DownloadFileTaskAsync(new Uri(url), destinationFile).Wait();
+                    client.DownloadFileTaskAsync(new Uri(url), tempFile).Wait();
                 });
+
+                File.Move(tempFile, destinationFile);
+                PendingTempFilePaths.Remove(tempFile);
             }
         }
 
@@ -150,20 +135,28 @@ namespace MachineSetup
 
         private void DownloadWrapper(string friendlyName, Action<WebClient> downloadAction)
         {
-            using(WebClient client = new WebClient())
+            try
             {
-                client.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2;)");
-                client.DownloadProgressChanged += (o, e) => HandeDownloadProgress(friendlyName, e.BytesReceived, e.TotalBytesToReceive);
+                using(WebClient client = new WebClient())
+                {
+                    CurrentClient = client;
+                    client.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2;)");
+                    client.DownloadProgressChanged += (o, e) => HandeDownloadProgress(friendlyName, e.BytesReceived, e.TotalBytesToReceive);
 
-                DownloadStartTime = DateTime.Now;
-                DownloadLastReceivedBytes = 0;
+                    DownloadStartTime = DateTime.Now;
+                    DownloadLastReceivedBytes = 0;
 
-                downloadAction(client);
+                    downloadAction(client);
 
-                DownloadStartTime = DateTime.MinValue;
+                    DownloadStartTime = DateTime.MinValue;
 
-                Console.WriteLine();
-                Console.WriteLine("Download finished!");
+                    Console.WriteLine();
+                    Console.WriteLine("Download finished!");
+                }
+            }
+            finally
+            {
+                CurrentClient = null;
             }
         }
 
@@ -265,6 +258,22 @@ namespace MachineSetup
             {
                 UserPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User).Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
                 MachinePath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine).Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+            };
+
+            Console.CancelKeyPress += (o, e) =>
+            {
+                e.Cancel = true;
+
+                if(context.CurrentClient != null)
+                {
+                    context.CurrentClient.CancelAsync();
+                }
+
+                foreach(string tempFilePath in context.PendingTempFilePaths)
+                {
+                    if(File.Exists(tempFilePath))
+                        File.Delete(tempFilePath);
+                }
             };
 
 #if DEBUG

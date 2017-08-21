@@ -42,7 +42,14 @@ namespace MachineSetup
             string url = $"{DownloadPageUrl}{name}";
             context.DownloadFile("Gimp installer", url, installerPath);
 
-            // TODO: Test this
+            InnoSetupInfo info = InnoSetupInfo.Default;
+            info.LogPath = Path.Combine(installerDir, "installer.log");
+            ProcessStartInfo processStartInfo = PrepareInnoSetupProcess(installerPath, info);
+
+            if(context.InstallEnabled)
+            {
+                context.RunProcess(processStartInfo);
+            }
         }
     }
 }
