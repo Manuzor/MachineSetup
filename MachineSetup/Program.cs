@@ -331,12 +331,17 @@ namespace MachineSetup
             nextcloud.Run(context);
 #endif
 
-#if true
-            GimpSetup gimp = new GimpSetup();
-            gimp.Run(context);
+#if false
+      GimpSetup gimp = new GimpSetup();
+      gimp.Run(context);
 #endif
 
-            //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
-        }
+#if true
+      PaintNetSetup paintnet = new PaintNetSetup();
+      paintnet.Run(context);
+#endif
+
+      //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
     }
+  }
 }
