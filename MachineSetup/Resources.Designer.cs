@@ -19,7 +19,7 @@ namespace MachineSetup {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -57,6 +57,29 @@ namespace MachineSetup {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+        ///&lt;packages&gt;
+        ///  &lt;package id=&quot;7zip.install&quot;/&gt;
+        ///  &lt;package id=&quot;git.install&quot;/&gt;
+        ///  &lt;package id=&quot;python2&quot;/&gt;
+        ///  &lt;package id=&quot;python3&quot;/&gt;
+        ///  &lt;package id=&quot;visualstudio2017community&quot; packageParameters=&quot;--locale en-US&quot;/&gt;
+        ///  &lt;package id=&quot;sublimetext3&quot;/&gt;
+        ///  &lt;package id=&quot;firefox&quot; packageParameters=&quot;l=en-US&quot;/&gt;
+        ///  &lt;package id=&quot;paint.net&quot;/&gt;
+        ///  &lt;package id=&quot;gimp&quot;/&gt;
+        ///  &lt;package id=&quot;beyondcompare&quot;/&gt;
+        ///  &lt;package id=&quot;beyondcompare-integration&quot;/&gt;
+        ///&lt;/packages&gt;
+        ///.
+        /// </summary>
+        internal static string choco_packages {
+            get {
+                return ResourceManager.GetString("choco_packages", resourceCulture);
             }
         }
         

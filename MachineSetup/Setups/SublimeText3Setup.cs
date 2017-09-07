@@ -75,7 +75,7 @@ namespace MachineSetup
                         // HACK
                         if(repoName.Trim().ToLower() == "sublimetext3settings")
                         {
-                            ExecutePowershellScript(context, PowershellExePath, Path.Combine(clonePath, "AddPackages.ps1"));
+                            ExecutePowershell(context, PowershellExePath, "-File", Path.Combine(clonePath, "AddPackages.ps1"));
                         }
                     }
                 }

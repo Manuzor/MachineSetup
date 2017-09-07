@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIs\7ZipApi.cs" />
+    <Compile Include="APIs\ChocolateyApi.cs" />
     <Compile Include="APIs\GitApi.cs" />
     <Compile Include="APIs\GitHubApi.cs" />
     <Compile Include="APIs\InnoSetupApi.cs" />
@@ -91,6 +92,7 @@
     <None Include="App.config" />
     <None Include="app.manifest" />
     <None Include="packages.config" />
+    <None Include="Resources\choco-packages.config" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">

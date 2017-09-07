@@ -9,32 +9,28 @@ using System.Diagnostics;
 
 public static partial class Global
 {
-    public static string PowershellExePath => @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe";
+  public static string PowershellExePath => @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe";
 
-    /// Returns the exit code.
-    public static int ExecutePowershellScript(SetupContext context, string psExePath, string scriptPath, params string[] scriptArgs)
+  /// Returns the exit code.
+  public static int ExecutePowershell(SetupContext context, string psExePath, params string[] args)
+  {
+    List<string> allArgs = new List<string>
     {
-        if(!File.Exists(scriptPath))
-            throw new FileNotFoundException("Unable to find powershell script file.", scriptPath);
+        "-ExecutionPolicy", "Unrestricted",
+    };
+    allArgs.AddRange(args);
 
-        List<string> allArgs = new List<string>
-        {
-            "-ExecutionPolicy", "Unrestricted",
-            "-File", scriptPath,
-        };
-        allArgs.AddRange(scriptArgs);
+    ProcessStartInfo processStartInfo = new ProcessStartInfo(psExePath)
+    {
+      Arguments = ToProcessArgumentsString(allArgs),
+      UseShellExecute = false,
+      RedirectStandardOutput = true,
+      RedirectStandardError = true,
+    };
 
-        ProcessStartInfo processStartInfo = new ProcessStartInfo(psExePath)
-        {
-            Arguments = ToProcessArgumentsString(allArgs),
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
+    int exitCode = 0;
+    context.RunProcess(processStartInfo, (proc) => exitCode = proc.ExitCode);
 
-        int exitCode = 0;
-        context.RunProcess(processStartInfo, (proc) => exitCode = proc.ExitCode);
-
-        return exitCode;
-    }
+    return exitCode;
+  }
 }
