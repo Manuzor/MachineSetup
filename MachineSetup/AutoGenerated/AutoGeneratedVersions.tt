@@ -25,16 +25,6 @@ namespace MachineSetup
     {
         new Info { Namespace = "MachineSetup", Name = "NextCloud", Fields = DefaultFields4, },
         new Info { Namespace = "MachineSetup", Name = "Gimp", Fields = DefaultFields3, },
-        new Info
-        {
-            Namespace = "MachineSetup",
-            Name = "SevenZip",
-            Fields = DefaultFields2,
-
-            Generate_Flags = true,
-            Generate_ToString = false,
-            Generate_TryParse = false,
-        },
     };
 
     foreach(Info info in infos)

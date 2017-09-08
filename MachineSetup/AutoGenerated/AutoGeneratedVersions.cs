@@ -117,26 +117,3 @@ namespace MachineSetup
     }
 }
 
-namespace MachineSetup
-{
-    public partial struct SevenZipVersion : IComparable<SevenZipVersion>
-    {
-        public const string VersionRegex = @"(?<Major>\d+)\.(?<Minor>\d+)";
-
-        public int Major;
-        public int Minor;
-        public VersionFlags Flags;
-
-        public int CompareTo(SevenZipVersion other)
-        {
-            if(Major < other.Major) return -1;
-            if(Major > other.Major) return 1;
-            if(Minor < other.Minor) return -1;
-            if(Minor > other.Minor) return 1;
-            if(Flags != 0 && other.Flags == 0) return -1;
-            if(Flags == 0 && other.Flags != 0) return 1;
-            return 0;
-        }
-    }
-}
-

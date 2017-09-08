@@ -75,6 +75,66 @@ namespace MachineSetup
             string result = WebUtility.UrlDecode(encodedFileName);
             return result;
         }
+
+        public static string GetDisplayName(this ISetup setup)
+        {
+            Type type = setup.GetType();
+            string result;
+
+            SetupAttribute attr = type.GetCustomAttribute<SetupAttribute>();
+            if(attr != null && attr.DisplayName != null)
+            {
+                result = attr.DisplayName;
+            }
+            else
+            {
+                result = type.Name;
+            }
+
+            return result;
+        }
+
+        public static string GetSetupOptionDisplayName(this MemberInfo member)
+        {
+            string result;
+
+            SetupOptionAttribute option = member.GetCustomAttribute<SetupOptionAttribute>();
+            if(option != null && option.DisplayName != null)
+            {
+                result = option.DisplayName;
+            }
+            else
+            {
+                result = member.Name;
+            }
+
+            return result;
+        }
+    }
+
+    public interface ISetup
+    {
+        void Run(SetupContext context);
+    }
+
+    public class SetupAttribute : Attribute
+    {
+        public string DisplayName;
+        public SetupAttribute(string displayName)
+        {
+            DisplayName = displayName;
+        }
+    }
+
+    public class SetupOptionAttribute : Attribute
+    {
+        public string DisplayName;
+
+        public SetupOptionAttribute() { }
+        public SetupOptionAttribute(string displayName)
+        {
+            DisplayName = displayName;
+        }
     }
 
     public class SetupContext
@@ -342,26 +402,54 @@ namespace MachineSetup
 #endif
 
 #if false
-      GimpSetup gimp = new GimpSetup();
-      gimp.Run(context);
+            GimpSetup gimp = new GimpSetup();
+            gimp.Run(context);
 #endif
 
 #if false
-      PaintNetSetup paintnet = new PaintNetSetup();
-      paintnet.Run(context);
+            PaintNetSetup paintnet = new PaintNetSetup();
+            paintnet.Run(context);
 #endif
 
-            if(!IsChocolateyInstalled(context, ChocoExePath))
-            {
-                const string chocoInstallScriptUrl = @"https://chocolatey.org/install.ps1";
-                string chocoInstallScript = context.DownloadString("Chocolatey install script URL", chocoInstallScriptUrl);
-                ExecutePowershell(context, PowershellExePath, chocoInstallScript);
-            }
+            Console.WriteLine("Gathering setups...");
+            List<ISetup> setups = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
+                                   from type in assembly.GetTypes()
+                                   where !type.IsInterface && !type.IsAbstract
+                                   where typeof(ISetup).IsAssignableFrom(type)
+                                   select (ISetup)Activator.CreateInstance(type)).ToList();
 
-            string chocoSavePath = context.CreateSaveDir("chocolatey");
-            string chocoPackagesFilePath = Path.Combine(chocoSavePath, "choco-packages.config");
-            File.WriteAllText(chocoPackagesFilePath, Resources.choco_packages, Encoding.UTF8);
-            ExecuteChocolatey(context, ChocoExePath, "install", chocoPackagesFilePath);
+            Console.WriteLine("Executing setups...");
+            foreach(ISetup setup in setups)
+            {
+                Console.WriteLine($"[{setup.GetDisplayName()}]");
+                IEnumerable<MemberInfo> options =
+                    from member in setup.GetType().GetMembers()
+                    where member.MemberType.HasFlag(MemberTypes.Field) || member.MemberType.HasFlag(MemberTypes.Property)
+                    where member.IsDefined(typeof(SetupOptionAttribute))
+                    select member;
+
+                foreach(MemberInfo member in options)
+                {
+                    switch(member)
+                    {
+                        case PropertyInfo prop:
+                        {
+                            Console.WriteLine($"Option {member.GetSetupOptionDisplayName()}: {prop.GetValue(setup)}");
+                            break;
+                        }
+
+                        case FieldInfo field:
+                        {
+                            Console.WriteLine($"Option {member.GetSetupOptionDisplayName()}: {field.GetValue(setup)}");
+                            break;
+                        }
+
+                        default: throw new ArgumentException(nameof(member));
+                    }
+                }
+
+                setup.Run(context);
+            }
 
             //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
         }
