@@ -6,10 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using static Global;
 
 namespace MachineSetup
 {
+    using static Global;
+
     public partial struct SevenZipVersion
     {
         public bool IsBeta => Flags.HasFlag(VersionFlags.Beta);
@@ -58,10 +59,7 @@ namespace MachineSetup
             return result;
         }
     }
-}
 
-namespace MachineSetup
-{
     public class SevenZipSetup
     {
         public string VersionListUrl { get; set; } = @"https://sourceforge.net/projects/sevenzip/files/7-Zip/";

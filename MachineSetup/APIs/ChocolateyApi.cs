@@ -7,27 +7,30 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public static partial class Global
+namespace MachineSetup
 {
-  public static string ChocoExePath = @"C:\ProgramData\chocolatey\bin\choco.exe";
-
-  public static bool IsChocolateyInstalled(SetupContext context, string chocoExePath)
-  {
-    return File.Exists(chocoExePath);
-  }
-
-  public static int ExecuteChocolatey(SetupContext context, string chocoExePath, params string[] args)
-  {
-    ProcessStartInfo startInfo = new ProcessStartInfo(chocoExePath)
+    public static partial class Global
     {
-      Arguments = ToProcessArgumentsString(args),
-      UseShellExecute = false,
-      RedirectStandardOutput = true,
-      RedirectStandardError = true,
-    };
+        public static string ChocoExePath = @"C:\ProgramData\chocolatey\bin\choco.exe";
 
-    int exitCode = 0;
-    context.RunProcess(startInfo, (proc) => exitCode = proc.ExitCode);
-    return exitCode;
-  }
+        public static bool IsChocolateyInstalled(SetupContext context, string chocoExePath)
+        {
+            return File.Exists(chocoExePath);
+        }
+
+        public static int ExecuteChocolatey(SetupContext context, string chocoExePath, params string[] args)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo(chocoExePath)
+            {
+                Arguments = ToProcessArgumentsString(args),
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+
+            int exitCode = 0;
+            context.RunProcess(startInfo, (proc) => exitCode = proc.ExitCode);
+            return exitCode;
+        }
+    }
 }

@@ -8,10 +8,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using static Global;
-
 namespace MachineSetup
 {
+    using static Global;
+
     public class SublimeText3Setup
     {
         public string DownloadPageUrl = @"https://www.sublimetext.com/3";

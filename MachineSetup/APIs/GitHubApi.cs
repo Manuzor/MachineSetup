@@ -2,59 +2,60 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using static Global;
-
-public static partial class Global
-{
-    public static string ToGitHubContentTypeString(this GitHubContentType type)
-    {
-        switch(type)
-        {
-            case GitHubContentType.Unknown: return string.Empty;
-            case GitHubContentType.Executable: return "application/executable";
-            case GitHubContentType.Zip: return "application/zip";
-            case GitHubContentType.BZip2: return "application/x-bzip2";
-
-            default: throw new ArgumentException(nameof(type));
-        }
-    }
-
-    public static GitHubContentType ParseGitHubContentTypeString(string str)
-    {
-        switch(str.ToLower())
-        {
-            case "application/executable": return GitHubContentType.Executable;
-            case "application/zip": return GitHubContentType.Zip;
-            case "application/x-bzip2": return GitHubContentType.BZip2;
-
-            default: return GitHubContentType.Unknown;
-        }
-    }
-
-    public static string ToGitHubReleaseStateString(this GitHubReleaseState state)
-    {
-        switch(state)
-        {
-            case GitHubReleaseState.Unknown: return string.Empty;
-            case GitHubReleaseState.Uploaded: return "uploaded";
-
-            default: throw new ArgumentException(nameof(state));
-        }
-    }
-
-    public static GitHubReleaseState ParseGitHubReleaseStateString(string str)
-    {
-        switch(str.ToLower())
-        {
-            case "uploaded": return GitHubReleaseState.Uploaded;
-
-            default: return GitHubReleaseState.Unknown;
-        }
-    }
-}
 
 namespace MachineSetup
 {
+    using static Global;
+
+    public static partial class Global
+    {
+        public static string ToGitHubContentTypeString(this GitHubContentType type)
+        {
+            switch(type)
+            {
+                case GitHubContentType.Unknown: return string.Empty;
+                case GitHubContentType.Executable: return "application/executable";
+                case GitHubContentType.Zip: return "application/zip";
+                case GitHubContentType.BZip2: return "application/x-bzip2";
+
+                default: throw new ArgumentException(nameof(type));
+            }
+        }
+
+        public static GitHubContentType ParseGitHubContentTypeString(string str)
+        {
+            switch(str.ToLower())
+            {
+                case "application/executable": return GitHubContentType.Executable;
+                case "application/zip": return GitHubContentType.Zip;
+                case "application/x-bzip2": return GitHubContentType.BZip2;
+
+                default: return GitHubContentType.Unknown;
+            }
+        }
+
+        public static string ToGitHubReleaseStateString(this GitHubReleaseState state)
+        {
+            switch(state)
+            {
+                case GitHubReleaseState.Unknown: return string.Empty;
+                case GitHubReleaseState.Uploaded: return "uploaded";
+
+                default: throw new ArgumentException(nameof(state));
+            }
+        }
+
+        public static GitHubReleaseState ParseGitHubReleaseStateString(string str)
+        {
+            switch(str.ToLower())
+            {
+                case "uploaded": return GitHubReleaseState.Uploaded;
+
+                default: return GitHubReleaseState.Unknown;
+            }
+        }
+    }
+
     public enum GitHubContentType
     {
         Unknown,

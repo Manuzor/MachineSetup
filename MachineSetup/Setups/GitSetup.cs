@@ -6,10 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using static Global;
-
 namespace MachineSetup
 {
+    using static Global;
+
     public class GitSetup
     {
         public string GitHubOwner = "git-for-windows";

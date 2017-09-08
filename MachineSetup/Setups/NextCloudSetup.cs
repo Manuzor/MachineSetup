@@ -8,10 +8,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using static Global;
-
 namespace MachineSetup
 {
+    using static Global;
+
     public partial struct NextCloudVersion
     {
         public string ToSetupFileName() => $"Nextcloud-{this}-setup.exe";

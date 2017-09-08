@@ -6,10 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-using static Global;
-
 namespace MachineSetup
 {
+    using static Global;
+
     public class VisualStudioSetup
     {
         public string DownloadUrl_CommunityEdition = @"https://aka.ms/vs/15/release/vs_community.exe";

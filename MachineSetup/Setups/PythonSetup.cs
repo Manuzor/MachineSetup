@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
-
-using static Global;
 using HtmlAgilityPack;
 using System.Text.RegularExpressions;
 
 namespace MachineSetup
 {
+    using static Global;
+
     public struct PythonVersion : IComparable<PythonVersion>
     {
         public int Major;

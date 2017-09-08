@@ -8,14 +8,17 @@ using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
-[Flags]
-public enum VersionFlags
+namespace MachineSetup
 {
-    Beta,
-    RC1,
-    RC2,
-    RC3,
-    Pre,
+    [Flags]
+    public enum VersionFlags
+    {
+        Beta,
+        RC1,
+        RC2,
+        RC3,
+        Pre,
+    }
 }
 <#
     Info[] infos = new[]
@@ -146,7 +149,7 @@ class Info
 
     public string StringPrefix = string.Empty;
 
-	public bool Generate_VersionRegex = true;
+    public bool Generate_VersionRegex = true;
     public bool Generate_Flags = false;
     public bool Generate_ToString = true;
     public bool Generate_TryParse = true;

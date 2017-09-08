@@ -11,6 +11,8 @@ using System.Xml.Linq;
 
 namespace MachineSetup
 {
+    using static Global;
+
     public class FirefoxSetup
     {
         public string DownloadPageUrl = @"https://www.mozilla.org/firefox/all/";

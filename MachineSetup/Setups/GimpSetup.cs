@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 
-using static Global;
-
 namespace MachineSetup
 {
+    using static Global;
+
     public partial struct GimpVersion
     {
         public string ToSetupFileName() => $"gimp-{this}-setup.exe";

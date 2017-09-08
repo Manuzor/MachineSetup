@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 
-using static Global;
 using HtmlAgilityPack;
 
 namespace MachineSetup
 {
+    using static Global;
+
     public class BeyondCompareSetup
     {
         public string DownloadPageUrl = @"https://www.scootersoftware.com/download.php";
