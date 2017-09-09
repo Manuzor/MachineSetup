@@ -85,6 +85,8 @@
     <Compile Include="Setups\FirefoxSetup.cs" />
     <Compile Include="Setups\GimpSetup.cs" />
     <Compile Include="Setups\GitSetup.cs" />
+    <Compile Include="Setups\IrfanViewSetup.cs" />
+    <Compile Include="Setups\LockHunterSetup.cs" />
     <Compile Include="Setups\KeePass2Setup.cs" />
     <Compile Include="Setups\NextCloudSetup.cs" />
     <Compile Include="Setups\PaintNetSetup.cs" />
