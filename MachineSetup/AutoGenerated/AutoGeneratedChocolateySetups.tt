@@ -19,6 +19,17 @@ namespace MachineSetup
     new ChocolateySetup("IrfanView all plugins", "IrfanViewAllPlugins", "irfanviewplugins"),
     new ChocolateySetup("Gimp", "Gimp", "gimp"),
     new ChocolateySetup("Beyond Compare 4", "BeyondCompare4", "beyondcompare"),
+    new ChocolateySetup("Dropbox", "Dropbox", "dropbox"),
+    new ChocolateySetup("Adobe Reader DC", "AdobeReaderDC", "adobereader"),
+    new ChocolateySetup("Foobar 2000", "Foobar2000", "foobar2000"),
+    new ChocolateySetup("Tortoise SVN", "TortoiseSvn", "tortoisesvn"),
+    new ChocolateySetup("OpenVPN", "OpenVpn", "openvpn"),
+    new ChocolateySetup("Postman", "Postman", "postman"),
+    new ChocolateySetup("VirtualBox", "VirtualBox", "virtualbox"),
+    new ChocolateySetup("Telegram", "Telegram", "telegram.install"),
+    new ChocolateySetup("TeamSpeak 3", "TeamSpeak3", "teamspeak"),
+    new ChocolateySetup("PotPlayer", "PotPlayer", "potplayer"),
+    new ChocolateySetup("LibreOffice", "LibreOffice", "libreoffice"),
   };
 
   foreach(ChocolateySetup setup in setups)
