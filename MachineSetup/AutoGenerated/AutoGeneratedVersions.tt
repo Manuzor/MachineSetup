@@ -21,10 +21,8 @@ namespace MachineSetup
     }
 }
 <#
-    Info[] infos = new[]
+    Info[] infos = new Info[]
     {
-        new Info { Namespace = "MachineSetup", Name = "NextCloud", Fields = DefaultFields4, },
-        new Info { Namespace = "MachineSetup", Name = "Gimp", Fields = DefaultFields3, },
     };
 
     foreach(Info info in infos)

@@ -11,45 +11,13 @@ namespace MachineSetup
 {
     using static Global;
 
-    public partial struct GimpVersion
+    [Setup("Gimp")]
+    [SetupDependency(typeof(ChocolateySetup))]
+    public class GimpSetup : ISetup
     {
-        public string ToSetupFileName() => $"gimp-{this}-setup.exe";
-    }
-
-    public class GimpSetup
-    {
-        public string DownloadPageUrl { get; set; } = @"https://download.gimp.org/mirror/pub/gimp/stable/windows/";
-
         public void Run(SetupContext context)
         {
-            HtmlWeb web = new HtmlWeb();
-            HtmlDocument doc = web.Load(DownloadPageUrl);
-            List<GimpVersion> versions =
-                doc.DocumentNode.Descendants("a")
-                                .Select(a => GimpVersion.TryParse(a.GetAttributeValue("href", null)))
-                                .Where(v => v != null)
-                                .Select(v => v.Value)
-                                .Distinct()
-                                .ToList();
-
-            versions.Sort();
-
-            GimpVersion latestVersion = versions.Last();
-            string name = latestVersion.ToSetupFileName();
-            string installerDir = Path.Combine(context.SavePath, "gimp");
-            string installerPath = Path.Combine(installerDir, name);
-
-            string url = $"{DownloadPageUrl}{name}";
-            context.DownloadFile("Gimp installer", url, installerPath);
-
-            InnoSetupInfo info = InnoSetupInfo.Default;
-            info.LogPath = Path.Combine(installerDir, "installer.log");
-            ProcessStartInfo processStartInfo = PrepareInnoSetupProcess(installerPath, info);
-
-            if(context.InstallEnabled)
-            {
-                context.RunProcess(processStartInfo);
-            }
+            context.ExecuteChocolatey("install", "gimp");
         }
     }
 }

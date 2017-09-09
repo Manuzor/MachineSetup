@@ -12,14 +12,19 @@ namespace MachineSetup
 {
     using static Global;
 
-    public class SevenZipSetup
+    [Setup("7-Zip")]
+    [SetupDependency(typeof(ChocolateySetup))]
+    public class SevenZipSetup : ISetup
     {
+        [SetupOption("Windows Registry Key 'FM'")]
         public string FMRegistryKey = @"HKEY_CURRENT_USER\Software\7-Zip\FM";
+
+        [SetupOption("Editor Path", Description = "Path to the editor used by the 7-Zip file manager.")]
         public string EditorPath = "C:/Program Files/Sublime Text 3/subl.exe";
 
         public void Run(SetupContext context)
         {
-            if(ExecuteChocolatey(context, ChocoExePath, "install", "7zip.install") == 0)
+            if(context.ExecuteChocolatey("install", "7zip.install") == 0)
             {
                 Registry.SetValue(FMRegistryKey, "Editor", EditorPath);
             }

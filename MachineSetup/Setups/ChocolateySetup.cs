@@ -8,24 +8,24 @@ using static MachineSetup.Global;
 
 namespace MachineSetup
 {
-    [Setup("Choci setup")]
+    [Setup("Chocolatey")]
     public class ChocolateySetup : ISetup
     {
-        [SetupOption]
+        [SetupOption("Install Script URL")]
         public string ChocoInstallScriptUrl = @"https://chocolatey.org/install.ps1";
 
         public void Run(SetupContext context)
         {
-            if(!IsChocolateyInstalled(context, ChocoExePath))
+            if(!context.IsChocolateyInstalled())
             {
                 string chocoInstallScript = context.DownloadString("Chocolatey install script URL", ChocoInstallScriptUrl);
-                ExecutePowershell(context, PowershellExePath, chocoInstallScript);
+                context.ExecutePowershell(chocoInstallScript);
             }
 
-            string chocoSavePath = context.CreateSaveDir("chocolatey");
-            string chocoPackagesFilePath = Path.Combine(chocoSavePath, "choco-packages.config");
-            File.WriteAllText(chocoPackagesFilePath, Resources.choco_packages, Encoding.UTF8);
-            ExecuteChocolatey(context, ChocoExePath, "install", chocoPackagesFilePath);
+            //string chocoSavePath = context.CreateSaveDir("chocolatey");
+            //string chocoPackagesFilePath = Path.Combine(chocoSavePath, "choco-packages.config");
+            //File.WriteAllText(chocoPackagesFilePath, Resources.choco_packages, Encoding.UTF8);
+            //ExecuteChocolatey(context, ChocoExePath, "install", chocoPackagesFilePath);
         }
     }
 }

@@ -11,16 +11,18 @@ namespace MachineSetup
 {
     public static partial class Global
     {
-        public static string ChocoExePath = @"C:\ProgramData\chocolatey\bin\choco.exe";
+        public static string DefaultChocoExePath = @"C:\ProgramData\chocolatey\bin\choco.exe";
 
-        public static bool IsChocolateyInstalled(SetupContext context, string chocoExePath)
+        public static bool IsChocolateyInstalled(this SetupContext context)
         {
-            return File.Exists(chocoExePath);
+            return File.Exists(DefaultChocoExePath);
         }
 
-        public static int ExecuteChocolatey(SetupContext context, string chocoExePath, params string[] args)
+        public static int ExecuteChocolatey(this SetupContext context, params string[] args)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo(chocoExePath)
+            Debug.Assert(args.Length > 0);
+
+            ProcessStartInfo startInfo = new ProcessStartInfo(DefaultChocoExePath)
             {
                 Arguments = ToProcessArgumentsString(args),
                 UseShellExecute = false,

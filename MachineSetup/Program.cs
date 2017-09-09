@@ -13,6 +13,7 @@ using System.Windows.Forms;
 
 namespace MachineSetup
 {
+    using System.Collections;
     using static Global;
 
     public static partial class Global
@@ -120,15 +121,29 @@ namespace MachineSetup
     public class SetupAttribute : Attribute
     {
         public string DisplayName;
+        public string Description;
+        public string[] Links;
+
         public SetupAttribute(string displayName)
         {
             DisplayName = displayName;
         }
     }
 
+    public class SetupDependencyAttribute : Attribute
+    {
+        public Type RequiredType;
+
+        public SetupDependencyAttribute(Type requiredType)
+        {
+            RequiredType = requiredType;
+        }
+    }
+
     public class SetupOptionAttribute : Attribute
     {
         public string DisplayName;
+        public string Description;
 
         public SetupOptionAttribute() { }
         public SetupOptionAttribute(string displayName)
@@ -373,64 +388,6 @@ namespace MachineSetup
 
             Console.WriteLine($"Save path: {context.SavePath}");
 
-#if false
-            VisualStudioSetup vs = new VisualStudioSetup();
-            vs.Run(context);
-#endif
-
-#if false
-            SevenZipSetup sevenZip = new SevenZipSetup();
-            sevenZip.Run(context);
-#endif
-
-#if false
-            GitSetup git = new GitSetup();
-            git.Run(context);
-#endif
-
-#if false
-            SublimeText3Setup subl = new SublimeText3Setup
-            {
-                GitPackagesToInstallAfterwards = new List<string>
-                {
-                    @"https://github.com/Manuzor/SublimeText3Settings.git",
-                    @"https://github.com/Manuzor/Emvee.git",
-                },
-            };
-
-            subl.Run(context);
-#endif
-
-#if false
-            FirefoxSetup firefox = new FirefoxSetup();
-            firefox.Run(context);
-#endif
-
-#if false
-            BeyondCompareSetup bcomp = new BeyondCompareSetup();
-            bcomp.Run(context);
-#endif
-
-#if false
-            PythonSetup py = new PythonSetup();
-            py.Run(context);
-#endif
-
-#if false
-            NextCloudSetup nextcloud = new NextCloudSetup();
-            nextcloud.Run(context);
-#endif
-
-#if false
-            GimpSetup gimp = new GimpSetup();
-            gimp.Run(context);
-#endif
-
-#if false
-            PaintNetSetup paintnet = new PaintNetSetup();
-            paintnet.Run(context);
-#endif
-
             Console.WriteLine("Gathering setups...");
             List<Type> setupTypes = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
                                      from type in assembly.GetTypes()
@@ -466,13 +423,40 @@ namespace MachineSetup
 
                 foreach(SetupOptionData option in setup.Options)
                 {
-                    Console.WriteLine($"{option.DisplayName} = {option.Value}");
+                    StringBuilder buffer = new StringBuilder();
+                    PrintSetupOptionValue(buffer, option.Value);
+                    Console.WriteLine($"{option.DisplayName} = {buffer.ToString()}");
                 }
 
                 //setup.SetupInstance.Run(context);
+
+                Console.WriteLine(new string('-', 3));
             }
 
             //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
+        }
+
+        static void PrintSetupOptionValue(StringBuilder buffer, object value)
+        {
+            bool isString = value is string;
+            if(!isString && value is IEnumerable enumerable)
+            {
+                buffer.Append('[');
+                string prefix = string.Empty;
+                foreach(object item in enumerable)
+                {
+                    buffer.Append(prefix);
+                    prefix = ", ";
+                    PrintSetupOptionValue(buffer, item);
+                }
+                buffer.Append(']');
+            }
+            else
+            {
+                if(isString) buffer.Append('"');
+                buffer.Append(value);
+                if(isString) buffer.Append('"');
+            }
         }
     }
 }

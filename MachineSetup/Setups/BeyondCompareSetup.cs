@@ -12,40 +12,13 @@ namespace MachineSetup
 {
     using static Global;
 
-    public class BeyondCompareSetup
+    [Setup("Beyond Compare 4")]
+    [SetupDependency(typeof(ChocolateySetup))]
+    public class BeyondCompareSetup : ISetup
     {
-        public string DownloadPageUrl = @"https://www.scootersoftware.com/download.php";
-
         public void Run(SetupContext context)
         {
-            // Get the download URL
-            HtmlWeb web = new HtmlWeb();
-            HtmlDocument doc = web.Load(DownloadPageUrl);
-            HtmlNode anchorNode = doc.DocumentNode.Descendants("a")
-                                                  .Where(n => n.InnerText.Trim().ToLower() == "download")
-                                                  .Skip(1)
-                                                  .First();
-            string downloadUrl = anchorNode.GetAttributeValue("href", null);
-            // Fix the URL because it's weird on their website...
-            downloadUrl = $"https://www.scootersoftware.com{downloadUrl}";
-
-            // Determine the installer path
-            string installerDir = Path.Combine(context.SavePath, "beyondcompare4");
-            string installerPath = Path.Combine(installerDir, GetFileNameFromUrl(downloadUrl));
-
-            // Download the file
-            context.DownloadFile("Beyond Compare 4 installer", downloadUrl, installerPath);
-
-            // Prepare the installer
-            InnoSetupInfo setupInfo = InnoSetupInfo.Default;
-            setupInfo.LogPath = Path.Combine(installerDir, "installer.log");
-            ProcessStartInfo processStartInfo = PrepareInnoSetupProcess(installerPath, setupInfo);
-
-            // Run the installer
-            if(context.InstallEnabled)
-            {
-                context.RunProcess(processStartInfo);
-            }
+            context.ExecuteChocolatey("install", "beyondcompare");
         }
     }
 }

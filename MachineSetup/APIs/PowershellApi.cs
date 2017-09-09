@@ -11,18 +11,20 @@ namespace MachineSetup
 {
     public static partial class Global
     {
-        public static string PowershellExePath => @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe";
+        public static string DefaultPowershellExePath = @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe";
 
         /// Returns the exit code.
-        public static int ExecutePowershell(SetupContext context, string psExePath, params string[] args)
+        public static int ExecutePowershell(this SetupContext context, params string[] args)
         {
+            Debug.Assert(args.Length > 0);
+
             List<string> allArgs = new List<string>
-      {
-        "-ExecutionPolicy", "Unrestricted",
-      };
+            {
+                "-ExecutionPolicy", "Unrestricted",
+            };
             allArgs.AddRange(args);
 
-            ProcessStartInfo processStartInfo = new ProcessStartInfo(psExePath)
+            ProcessStartInfo processStartInfo = new ProcessStartInfo(DefaultPowershellExePath)
             {
                 Arguments = ToProcessArgumentsString(allArgs),
                 UseShellExecute = false,

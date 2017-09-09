@@ -12,72 +12,54 @@ namespace MachineSetup
 {
     using static Global;
 
-    public class SublimeText3Setup
+    [Setup("Sublime Text 3")]
+    [SetupDependency(typeof(ChocolateySetup))]
+    public class SublimeText3Setup : ISetup
     {
-        public string DownloadPageUrl = @"https://www.sublimetext.com/3";
-        public string PackageControlDownloadUrl = @"https://packagecontrol.io/Package%20Control.sublime-package";
-
-        public string SublimeAppData
+        public void Run(SetupContext context)
         {
-            get
-            {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string result = Path.Combine(appData, "Sublime Text 3");
-                return result;
-            }
+            context.ExecuteChocolatey("install", "sublimetext3");
+            context.ExecuteChocolatey("install", "sublimetext3.packagecontrol");
         }
+    }
 
-        public List<string> GitPackagesToInstallAfterwards { get; set; } = new List<string>();
+    [Setup("Sublime Text 3 - Packages")]
+    [SetupDependency(typeof(SublimeText3Setup))]
+    public class SublimeText3PackagesSetup : ISetup
+    {
+        [SetupOption("AppData Path")]
+        public string SublimeAppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Sublime Text 3");
+
+        [SetupOption("Packages Path")]
+        public string SublimePackagesPath => Path.Combine(SublimeAppDataPath, "Packages");
+
+        [SetupOption("Installed Packages Path")]
+        public string SublimeInstalledPackagesPath => Path.Combine(SublimeAppDataPath, "Installed Packages");
+
+        [SetupOption("Git packages")]
+        public List<string> GitPackagesToInstallAfterwards { get; set; } = new List<string>
+        {
+            @"https://github.com/Manuzor/SublimeText3Settings.git",
+            @"https://github.com/Manuzor/Emvee.git",
+        };
 
         public void Run(SetupContext context)
         {
-            // Get the download URL
-            HtmlWeb web = new HtmlWeb();
-            HtmlDocument doc = web.Load(DownloadPageUrl);
-            HtmlNode listNode = doc.DocumentNode.Descendants("li").Where(n => n.Id == "dl_win_64").Single();
-            string downloadUrl = listNode.Element("a").GetAttributeValue("href", null);
+            string packagesPath = SublimePackagesPath;
+            if(!Directory.Exists(packagesPath))
+                Directory.CreateDirectory(packagesPath);
 
-            // Determine the installer path
-            string fileName = Path.GetFileName(downloadUrl);
-            string installerDir = Path.Combine(context.SavePath, "subl");
-            string installerPath = Path.Combine(installerDir, fileName);
-
-            // Download the installer
-            context.DownloadFile(friendlyName: fileName, url: downloadUrl, destinationFile: installerPath);
-
-            // Prepare the installer
-            InnoSetupInfo setupInfo = InnoSetupInfo.Default;
-            setupInfo.LogPath = Path.Combine(installerDir, "installer.log");
-            ProcessStartInfo processStartInfo = PrepareInnoSetupProcess(installerPath, setupInfo);
-
-            // Run the installer
-            if(context.InstallEnabled)
+            // Download git packages.
+            foreach(string url in GitPackagesToInstallAfterwards)
             {
-                bool installedSuccessfully = false;
-                context.RunProcess(processStartInfo, (proc) => installedSuccessfully = proc.ExitCode == 0);
+                string repoName = GetFileNameFromUrl(url, withExtension: false);
+                string clonePath = Path.Combine(packagesPath, repoName);
+                CloneGitRepository(context, GitExePath, url, clonePath);
 
-                if(installedSuccessfully)
+                // HACK
+                if(repoName.Trim().ToLower() == "sublimetext3settings")
                 {
-                    // Package control
-                    string installedPackagesPath = Path.Combine(SublimeAppData, "Installed Packages");
-                    Directory.CreateDirectory(installedPackagesPath);
-                    string packageControlPath = Path.Combine(installedPackagesPath, GetFileNameFromUrl(PackageControlDownloadUrl));
-                    context.DownloadFile("Sublime Text 3 Package Control", PackageControlDownloadUrl, packageControlPath);
-
-                    // Download git packages.
-                    string packagesPath = Path.Combine(SublimeAppData, "Packages");
-                    foreach(string url in GitPackagesToInstallAfterwards)
-                    {
-                        string repoName = GetFileNameFromUrl(url, withExtension: false);
-                        string clonePath = Path.Combine(packagesPath, repoName);
-                        CloneGitRepository(context, GitExePath, url, clonePath);
-
-                        // HACK
-                        if(repoName.Trim().ToLower() == "sublimetext3settings")
-                        {
-                            ExecutePowershell(context, PowershellExePath, "-File", Path.Combine(clonePath, "AddPackages.ps1"));
-                        }
-                    }
+                    context.ExecutePowershell("-File", Path.Combine(clonePath, "AddPackages.ps1"));
                 }
             }
         }
