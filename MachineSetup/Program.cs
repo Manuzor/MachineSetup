@@ -298,6 +298,26 @@ namespace MachineSetup
         }
     }
 
+    public class SetupOptionData
+    {
+        public ISetup SetupInstance;
+        public MemberInfo Member;
+        public string DisplayName;
+
+        public object Value
+        {
+            get => Member.GetValue(SetupInstance);
+            set => Member.SetValue(SetupInstance, value);
+        }
+    }
+
+    public class SetupData
+    {
+        public ISetup SetupInstance;
+        public string DisplayName;
+        public SetupOptionData[] Options;
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -412,43 +432,44 @@ namespace MachineSetup
 #endif
 
             Console.WriteLine("Gathering setups...");
-            List<ISetup> setups = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                                   from type in assembly.GetTypes()
-                                   where !type.IsInterface && !type.IsAbstract
-                                   where typeof(ISetup).IsAssignableFrom(type)
-                                   select (ISetup)Activator.CreateInstance(type)).ToList();
+            List<Type> setupTypes = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
+                                     from type in assembly.GetTypes()
+                                     where type.IsDefined(typeof(SetupAttribute))
+                                     select type).ToList();
+
+            List<SetupData> dataList = new List<SetupData>();
+            foreach(Type type in setupTypes)
+            {
+                Debug.Assert(typeof(ISetup).IsAssignableFrom(type), $"Type '{type.FullName}' is decorated with {nameof(SetupAttribute)} but does not implement the {nameof(ISetup)} interface.");
+                Debug.Assert(type.IsClass && !type.IsAbstract, $"Type '{type.FullName}' must be an instantiable class-type.");
+
+                ISetup instance = (ISetup)Activator.CreateInstance(type);
+
+                SetupData data = new SetupData
+                {
+                    SetupInstance = instance,
+                    DisplayName = instance.GetDisplayName(),
+                    Options = (
+                        from member in type.GetMembers(MemberTypes.Field | MemberTypes.Property)
+                        where member.IsDefined(typeof(SetupOptionAttribute))
+                        select new SetupOptionData { SetupInstance = instance, Member = member, DisplayName = member.GetSetupOptionDisplayName() }
+                    ).ToArray()
+                };
+
+                dataList.Add(data);
+            }
 
             Console.WriteLine("Executing setups...");
-            foreach(ISetup setup in setups)
+            foreach(SetupData setup in dataList)
             {
-                Console.WriteLine($"[{setup.GetDisplayName()}]");
-                IEnumerable<MemberInfo> options =
-                    from member in setup.GetType().GetMembers()
-                    where member.MemberType.HasFlag(MemberTypes.Field) || member.MemberType.HasFlag(MemberTypes.Property)
-                    where member.IsDefined(typeof(SetupOptionAttribute))
-                    select member;
+                Console.WriteLine($"[{setup.DisplayName}]");
 
-                foreach(MemberInfo member in options)
+                foreach(SetupOptionData option in setup.Options)
                 {
-                    switch(member)
-                    {
-                        case PropertyInfo prop:
-                        {
-                            Console.WriteLine($"Option {member.GetSetupOptionDisplayName()}: {prop.GetValue(setup)}");
-                            break;
-                        }
-
-                        case FieldInfo field:
-                        {
-                            Console.WriteLine($"Option {member.GetSetupOptionDisplayName()}: {field.GetValue(setup)}");
-                            break;
-                        }
-
-                        default: throw new ArgumentException(nameof(member));
-                    }
+                    Console.WriteLine($"{option.DisplayName} = {option.Value}");
                 }
 
-                setup.Run(context);
+                //setup.SetupInstance.Run(context);
             }
 
             //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
