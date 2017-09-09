@@ -20,6 +20,8 @@ namespace MachineSetup
             {
                 string chocoInstallScript = context.DownloadString("Chocolatey install script URL", ChocoInstallScriptUrl);
                 context.ExecutePowershell(chocoInstallScript);
+
+                context.ExecuteChocolatey("feature", "enable", "-n=allowGlobalConfirmation");
             }
 
             //string chocoSavePath = context.CreateSaveDir("chocolatey");

@@ -1,9 +1,4 @@
-* 7-Zip Post-install settings (registry)
-* RapidEE
-* LockHunter
-* IrfanView
 * Blender
-* KeePass
 * Slack
 * Dropbox
 * Adobe Acrobat Reader
@@ -19,4 +14,6 @@
 * VirtualBox
 * TeamSpeak 3
 * Telegram
-* Visual D
+
+* Visual Studio settings
+* Visual Studio MSVC toolchain?

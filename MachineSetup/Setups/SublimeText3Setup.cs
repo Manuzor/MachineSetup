@@ -19,7 +19,11 @@ namespace MachineSetup
         public void Run(SetupContext context)
         {
             context.ExecuteChocolatey("install", "sublimetext3");
-            context.ExecuteChocolatey("install", "sublimetext3.packagecontrol");
+
+            // TODO: Investigate whether the following choco pacakge is worth
+            // it or not. Sublime offers to install packagecontrol in Ctrl+P
+            // afterall.
+            //context.ExecuteChocolatey("install", "sublimetext3.packagecontrol");
         }
     }
 
