@@ -111,6 +111,36 @@ namespace MachineSetup
 
             return result;
         }
+
+        public static string PrintSetupOptionValue(object value)
+        {
+            StringBuilder buffer = new StringBuilder();
+            PrintSetupOptionValue(buffer);
+            return buffer.ToString();
+        }
+
+        public static void PrintSetupOptionValue(StringBuilder buffer, object value)
+        {
+            bool isString = value is string;
+            if(!isString && value is IEnumerable enumerable)
+            {
+                buffer.Append('[');
+                string prefix = string.Empty;
+                foreach(object item in enumerable)
+                {
+                    buffer.Append(prefix);
+                    prefix = ", ";
+                    PrintSetupOptionValue(buffer, item);
+                }
+                buffer.Append(']');
+            }
+            else
+            {
+                if(isString) buffer.Append('"');
+                buffer.Append(value);
+                if(isString) buffer.Append('"');
+            }
+        }
     }
 
     public interface ISetup
@@ -313,6 +343,22 @@ namespace MachineSetup
         }
     }
 
+    public class SetupCandidate
+    {
+        public enum State
+        {
+            None,
+            Pending,
+            Processed,
+        }
+
+        public Type SetupType;
+        public State CurrentState;
+
+        public SetupCandidate(Type type) { SetupType = type; }
+    }
+
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class SetupOptionData
     {
         public ISetup SetupInstance;
@@ -324,13 +370,18 @@ namespace MachineSetup
             get => Member.GetValue(SetupInstance);
             set => Member.SetValue(SetupInstance, value);
         }
+
+        private string DebuggerDisplay => $"{DisplayName} = {PrintSetupOptionValue(Value)}";
     }
 
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class SetupData
     {
         public ISetup SetupInstance;
         public string DisplayName;
         public SetupOptionData[] Options;
+
+        private string DebuggerDisplay => $"{DisplayName} ({SetupInstance.GetType()})";
     }
 
     class Program
@@ -388,38 +439,33 @@ namespace MachineSetup
 
             Console.WriteLine($"Save path: {context.SavePath}");
 
+            Stopwatch perfTotal = Stopwatch.StartNew();
+
             Console.WriteLine("Gathering setups...");
-            List<Type> setupTypes = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                                     from type in assembly.GetTypes()
-                                     where type.IsDefined(typeof(SetupAttribute))
-                                     select type).ToList();
+            Stopwatch perfGathering = Stopwatch.StartNew();
+            List<SetupCandidate> setupCandidates =
+                (from assembly in AppDomain.CurrentDomain.GetAssemblies()
+                 from type in assembly.GetTypes()
+                 where type.IsDefined(typeof(SetupAttribute))
+                 select new SetupCandidate(type)
+                 ).ToList();
+            perfGathering.Stop();
+            Console.WriteLine($"Gathered all setup types in {perfGathering.Elapsed.TotalSeconds:.000}s.");
 
             List<SetupData> dataList = new List<SetupData>();
-            foreach(Type type in setupTypes)
+            Console.WriteLine("Resolving setup dependencies...");
+            Stopwatch perfDependencies = Stopwatch.StartNew();
+            foreach(SetupCandidate candidate in setupCandidates)
             {
-                Debug.Assert(typeof(ISetup).IsAssignableFrom(type), $"Type '{type.FullName}' is decorated with {nameof(SetupAttribute)} but does not implement the {nameof(ISetup)} interface.");
-                Debug.Assert(type.IsClass && !type.IsAbstract, $"Type '{type.FullName}' must be an instantiable class-type.");
-
-                ISetup instance = (ISetup)Activator.CreateInstance(type);
-
-                SetupData data = new SetupData
-                {
-                    SetupInstance = instance,
-                    DisplayName = instance.GetDisplayName(),
-                    Options = (
-                        from member in type.GetMembers(MemberTypes.Field | MemberTypes.Property)
-                        where member.IsDefined(typeof(SetupOptionAttribute))
-                        select new SetupOptionData { SetupInstance = instance, Member = member, DisplayName = member.GetSetupOptionDisplayName() }
-                    ).ToArray()
-                };
-
-                dataList.Add(data);
+                ProcessSetupCandidate(dataList, setupCandidates, candidate);
             }
+            perfDependencies.Stop();
+            Console.WriteLine($"Resolved setup dependencies in {perfDependencies.Elapsed.TotalSeconds:.000}s");
 
-            Console.WriteLine("Executing setups...");
             foreach(SetupData setup in dataList)
             {
-                Console.WriteLine($"[{setup.DisplayName}]");
+                Console.WriteLine($"---[{setup.DisplayName}]---------");
+                Stopwatch perfExec = Stopwatch.StartNew();
 
                 foreach(SetupOptionData option in setup.Options)
                 {
@@ -429,33 +475,53 @@ namespace MachineSetup
                 }
 
                 //setup.SetupInstance.Run(context);
+                //System.Threading.Thread.Sleep(100);
 
-                Console.WriteLine(new string('-', 3));
+                perfExec.Stop();
+                Console.WriteLine($"Finished [{setup.DisplayName}] in {perfExec.Elapsed.Minutes:00}:{perfExec.Elapsed.TotalSeconds:00.000}");
             }
 
             //Environment.SetEnvironmentVariable("PATH", TODO, EnvironmentVariableTarget.User);
+
+            perfTotal.Stop();
+            Console.WriteLine($"Total execution time: {perfTotal.Elapsed.Hours:00}:{perfTotal.Elapsed.Minutes:00}:{perfTotal.Elapsed.TotalSeconds:00.000}");
         }
 
-        static void PrintSetupOptionValue(StringBuilder buffer, object value)
+        static void ProcessSetupCandidate(List<SetupData> result, List<SetupCandidate> all, SetupCandidate candidate)
         {
-            bool isString = value is string;
-            if(!isString && value is IEnumerable enumerable)
+            if(candidate.CurrentState == SetupCandidate.State.Pending)
             {
-                buffer.Append('[');
-                string prefix = string.Empty;
-                foreach(object item in enumerable)
-                {
-                    buffer.Append(prefix);
-                    prefix = ", ";
-                    PrintSetupOptionValue(buffer, item);
-                }
-                buffer.Append(']');
+                throw new InvalidOperationException("Cyclic dependency detected.");
             }
-            else
+
+            if(candidate.CurrentState != SetupCandidate.State.Processed)
             {
-                if(isString) buffer.Append('"');
-                buffer.Append(value);
-                if(isString) buffer.Append('"');
+                candidate.CurrentState = SetupCandidate.State.Pending;
+
+                Debug.Assert(typeof(ISetup).IsAssignableFrom(candidate.SetupType), $"Type '{candidate.SetupType.FullName}' is decorated with {nameof(SetupAttribute)} but does not implement the {nameof(ISetup)} interface.");
+                Debug.Assert(candidate.SetupType.IsClass && !candidate.SetupType.IsAbstract, $"Type '{candidate.SetupType.FullName}' must be an instantiable class-type.");
+
+                foreach(SetupDependencyAttribute attr in candidate.SetupType.GetCustomAttributes<SetupDependencyAttribute>())
+                {
+                    SetupCandidate dependency = all.Single(c => c.SetupType == attr.RequiredType);
+                    ProcessSetupCandidate(result, all, dependency);
+                }
+
+                ISetup instance = (ISetup)Activator.CreateInstance(candidate.SetupType);
+
+                SetupData data = new SetupData
+                {
+                    SetupInstance = instance,
+                    DisplayName = instance.GetDisplayName(),
+                    Options = (
+                        from member in candidate.SetupType.GetMembers(MemberTypes.Field | MemberTypes.Property)
+                        where member.IsDefined(typeof(SetupOptionAttribute))
+                        select new SetupOptionData { SetupInstance = instance, Member = member, DisplayName = member.GetSetupOptionDisplayName() }
+                    ).ToArray()
+                };
+
+                result.Add(data);
+                candidate.CurrentState = SetupCandidate.State.Processed;
             }
         }
     }
