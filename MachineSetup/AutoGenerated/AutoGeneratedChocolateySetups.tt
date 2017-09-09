@@ -1,0 +1,61 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+namespace MachineSetup
+{<#
+  ChocolateySetup[] setups = new ChocolateySetup[]
+  {
+    new ChocolateySetup("Blender", "Blender", "blender"),
+    new ChocolateySetup("Lock Hunter", "LockHunter", "lockhunter"),
+    new ChocolateySetup("KeePass 2.x", "KeePass", "keepass.install"),
+    new ChocolateySetup("NextCloud client", "NextCloud", "nextcloud-client"),
+    new ChocolateySetup("Paint.NET", "PaintDotNet", "paint.net"),
+    new ChocolateySetup("Slack for Windows", "SlackForWindows", "slack"),
+    new ChocolateySetup("IrfanView", "IrfanView", "irfanview"),
+    new ChocolateySetup("IrfanView all plugins", "IrfanViewAllPlugins", "irfanviewplugins"),
+    new ChocolateySetup("Gimp", "Gimp", "gimp"),
+    new ChocolateySetup("Beyond Compare 4", "BeyondCompare4", "beyondcompare"),
+  };
+
+  foreach(ChocolateySetup setup in setups)
+  {
+    WriteLine("");
+    Write(Indent(1)); Write($"[Setup(\"{setup.DisplayName}\"");
+    //if(setup.Description != null)
+    //{
+    //  Write($", Description = \"{setup.Description}\"");
+    //}
+    WriteLine(")]");
+    Write(Indent(1)); WriteLine($"public class {setup.ClassName}Setup : ISetup");
+    Write(Indent(1)); WriteLine("{");
+    Write(Indent(2));   WriteLine("public void Run(SetupContext context)");
+    Write(Indent(2));   WriteLine("{");
+    Write(Indent(3));     WriteLine($"context.ExecuteChocolatey(\"install\", \"{setup.ChocoPackageName}\");");
+    Write(Indent(2));   WriteLine("}");
+    Write(Indent(1)); WriteLine("}");
+  }
+#>}
+
+<#+
+  string Indent(int level) => new string(' ', 4 * level);
+
+  class ChocolateySetup
+  {
+    public string DisplayName;
+    public string ClassName;
+    public string ChocoPackageName;
+
+    // public string Description;
+
+    public ChocolateySetup(string displayName, string className, string chocoPackageName)
+    {
+      this.DisplayName = displayName;
+      this.ClassName = className;
+      this.ChocoPackageName = chocoPackageName;
+    }
+  }
+#>

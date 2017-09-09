@@ -1,5 +1,3 @@
-* Blender
-* Slack
 * Dropbox
 * Adobe Acrobat Reader
 * foobar2000
