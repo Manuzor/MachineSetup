@@ -16,6 +16,9 @@ namespace MachineSetup
     [SetupDependency(typeof(ChocolateySetup))]
     public class SevenZipSetup : ISetup
     {
+        [SetupOption("Install Path (read-only)")]
+        public string InstallPath => @"C:\Program Files\7-Zip";
+
         [SetupOption("Windows Registry Key 'FM'")]
         public string FMRegistryKey = @"HKEY_CURRENT_USER\Software\7-Zip\FM";
 
@@ -26,6 +29,7 @@ namespace MachineSetup
         {
             if(context.ExecuteChocolatey("install", "7zip.install") == 0)
             {
+                context.UserPath.Add(InstallPath);
                 Registry.SetValue(FMRegistryKey, "Editor", EditorPath);
             }
         }

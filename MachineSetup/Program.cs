@@ -95,6 +95,34 @@ namespace MachineSetup
             return result;
         }
 
+        public static string GetDescription(this ISetup setup)
+        {
+            Type type = setup.GetType();
+            string result = null;
+
+            SetupAttribute attr = type.GetCustomAttribute<SetupAttribute>();
+            if(attr != null)
+            {
+                result = attr.Description;
+            }
+
+            return result;
+        }
+
+        public static string[] GetLinks(this ISetup setup)
+        {
+            Type type = setup.GetType();
+            string[] result = null;
+
+            SetupAttribute attr = type.GetCustomAttribute<SetupAttribute>();
+            if(attr != null)
+            {
+                result = attr.Links;
+            }
+
+            return result;
+        }
+
         public static string GetSetupOptionDisplayName(this MemberInfo member)
         {
             string result;
@@ -386,9 +414,13 @@ namespace MachineSetup
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class SetupData
     {
+        public string DisplayName { get; set; }
+        public string Description { get; set; }
+        public string[] Links { get; set; }
+
         public ISetup SetupInstance;
+        public bool IsEnabled = true;
         public SetupState State;
-        public string DisplayName;
         public SetupOptionData[] Options;
         public SetupData[] DirectDependencies;
 
@@ -406,7 +438,7 @@ namespace MachineSetup
             }
         }
 
-        private string DebuggerDisplay => $"{DisplayName} ({SetupInstance.GetType()})";
+        private string DebuggerDisplay => $"name={DisplayName} (instance={SetupInstance?.GetType()})";
     }
 
     class Program
@@ -565,6 +597,8 @@ namespace MachineSetup
                 {
                     SetupInstance = instance,
                     DisplayName = instance.GetDisplayName(),
+                    Description = instance.GetDescription(),
+                    Links = instance.GetLinks(),
                     Options = (
                         from member in candidate.SetupType.GetMembers(MemberTypes.Field | MemberTypes.Property)
                         where member.IsDefined(typeof(SetupOptionAttribute))

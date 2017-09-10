@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="MachineSetup.GUI.SetupControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MachineSetup.GUI"
+             mc:Ignorable="d" 
+             d:DesignHeight="30" d:DesignWidth="300">
+  <StackPanel Orientation="Horizontal">
+    <CheckBox Name="EnabledCheckBox"
+              VerticalAlignment="Center"
+              IsChecked="{Binding IsEnabled}"
+              Checked="EnabledCheckBox_CheckedChanged"
+              Unchecked="EnabledCheckBox_CheckedChanged"/>
+    <Label Content="{Binding DisplayName}"
+           VerticalAlignment="Center"
+           VerticalContentAlignment="Center"
+           HorizontalAlignment="Stretch">
+      <Label.ToolTip>
+        <ToolTip Content="{Binding Description}"/>
+      </Label.ToolTip>
+    </Label>
+  </StackPanel>
+</UserControl>

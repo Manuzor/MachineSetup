@@ -10,7 +10,7 @@ namespace MachineSetup
         }
     }
 
-    [Setup("Lock Hunter")]
+    [Setup("Lock Hunter", Description = "(Shell integration) Discover which process is locking a file.")]
     public class LockHunterSetup : ISetup
     {
         public void Run(SetupContext context)
@@ -187,6 +187,51 @@ namespace MachineSetup
         public void Run(SetupContext context)
         {
             context.ExecuteChocolatey("install", "libreoffice");
+        }
+    }
+
+    [Setup("NuGet Commandline")]
+    public class NuGetCommandlineSetup : ISetup
+    {
+        public void Run(SetupContext context)
+        {
+            context.ExecuteChocolatey("install", "nuget.commandline");
+        }
+    }
+
+    [Setup("Dependency Walker", Description = "Inspect Windows modules (.exe, .dll, ...) for their dependencies.")]
+    public class DependencyWalkerSetup : ISetup
+    {
+        public void Run(SetupContext context)
+        {
+            context.ExecuteChocolatey("install", "dependencywalker");
+        }
+    }
+
+    [Setup("Rapid Environment Editor")]
+    public class RapidEnvironmentEditorSetup : ISetup
+    {
+        public void Run(SetupContext context)
+        {
+            context.ExecuteChocolatey("install", "rapidee");
+        }
+    }
+
+    [Setup("Screen To Gif")]
+    public class ScreenToDifSetup : ISetup
+    {
+        public void Run(SetupContext context)
+        {
+            context.ExecuteChocolatey("install", "screentogif");
+        }
+    }
+
+    [Setup("WinDirStat")]
+    public class WinDirStatSetup : ISetup
+    {
+        public void Run(SetupContext context)
+        {
+            context.ExecuteChocolatey("install", "windirstat");
         }
     }
 }

@@ -10,7 +10,7 @@ namespace MachineSetup
   ChocolateySetup[] setups = new ChocolateySetup[]
   {
     new ChocolateySetup("Blender", "Blender", "blender"),
-    new ChocolateySetup("Lock Hunter", "LockHunter", "lockhunter"),
+    new ChocolateySetup("Lock Hunter", "LockHunter", "lockhunter") { Description = "(Shell integration) Discover which process is locking a file." },
     new ChocolateySetup("KeePass 2.x", "KeePass", "keepass.install"),
     new ChocolateySetup("NextCloud client", "NextCloud", "nextcloud-client"),
     new ChocolateySetup("Paint.NET", "PaintDotNet", "paint.net"),
@@ -30,16 +30,21 @@ namespace MachineSetup
     new ChocolateySetup("TeamSpeak 3", "TeamSpeak3", "teamspeak"),
     new ChocolateySetup("PotPlayer", "PotPlayer", "potplayer"),
     new ChocolateySetup("LibreOffice", "LibreOffice", "libreoffice"),
+    new ChocolateySetup("NuGet Commandline", "NuGetCommandline", "nuget.commandline"),
+    new ChocolateySetup("Dependency Walker", "DependencyWalker", "dependencywalker") { Description = "Inspect Windows modules (.exe, .dll, ...) for their dependencies." },
+    new ChocolateySetup("Rapid Environment Editor", "RapidEnvironmentEditor", "rapidee"),
+    new ChocolateySetup("Screen To Gif", "ScreenToDif", "screentogif"),
+    new ChocolateySetup("WinDirStat", "WinDirStat", "windirstat"),
   };
 
   foreach(ChocolateySetup setup in setups)
   {
     WriteLine("");
     Write(Indent(1)); Write($"[Setup(\"{setup.DisplayName}\"");
-    //if(setup.Description != null)
-    //{
-    //  Write($", Description = \"{setup.Description}\"");
-    //}
+    if(setup.Description != null)
+    {
+      Write($", Description = \"{setup.Description}\"");
+    }
     WriteLine(")]");
     Write(Indent(1)); WriteLine($"public class {setup.ClassName}Setup : ISetup");
     Write(Indent(1)); WriteLine("{");
@@ -60,7 +65,7 @@ namespace MachineSetup
     public string ClassName;
     public string ChocoPackageName;
 
-    // public string Description;
+    public string Description;
 
     public ChocolateySetup(string displayName, string className, string chocoPackageName)
     {
